@@ -84,4 +84,12 @@ export const statsApi = {
   getDashboard: () => api.get('/stats/dashboard')
 }
 
+// Pomodoro API
+export const pomodoroApi = {
+  createRecord: (data: { taskId?: number; mode: string; duration: number; notes?: string }) =>
+    api.post('/pomodoros/records', data),
+  getRecords: () => api.get('/pomodoros/records'),
+  getStats: () => api.get('/pomodoros/stats')
+}
+
 export default api

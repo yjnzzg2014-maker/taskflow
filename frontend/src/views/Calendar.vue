@@ -1,10 +1,13 @@
 <script setup lang="ts">
 import { ref, onMounted, computed } from 'vue'
 import dayjs from 'dayjs'
+import utc from 'dayjs/plugin/utc'
 import { ElMessage } from 'element-plus'
 import { useI18n } from 'vue-i18n'
 import { useEventStore } from '@/stores/event'
 import type { Event } from '@/types'
+
+dayjs.extend(utc)
 
 const { t } = useI18n()
 const eventStore = useEventStore()
@@ -18,21 +21,21 @@ const currentEvent = ref<Partial<Event>>({})
 const form = ref<{
   title: string
   description: string
-  startTime: string
-  endTime: string
+  startTime: Date | null
+  endTime: Date | null
   location: string
   isAllDay: boolean
   repeatType: 'NONE' | 'DAILY' | 'WEEKLY' | 'MONTHLY' | 'CUSTOM'
-  remindAt: string
+  remindAt: Date | null
 }>({
   title: '',
   description: '',
-  startTime: '',
-  endTime: '',
+  startTime: null,
+  endTime: null,
   location: '',
   isAllDay: false,
   repeatType: 'NONE',
-  remindAt: ''
+  remindAt: null
 })
 
 const calendarDays = computed(() => {
@@ -56,7 +59,7 @@ const calendarDays = computed(() => {
   for (let i = 1; i <= daysInMonth; i++) {
     const date = currentDate.value.date(i)
     const dayEvents = eventStore.events.filter(e => {
-      const eventDate = dayjs(e.startTime)
+      const eventDate = dayjs.utc(e.startTime).local()
       return eventDate.isSame(date, 'day')
     })
     days.push({
@@ -117,15 +120,16 @@ function goToday() {
 function openDialog(date?: dayjs.Dayjs) {
   isEdit.value = false
   currentEvent.value = {}
+  const defaultDate = date || dayjs()
   form.value = {
     title: '',
     description: '',
-    startTime: date ? date.format('YYYY-MM-DDTHH:mm') : dayjs().format('YYYY-MM-DDTHH:mm'),
-    endTime: '',
+    startTime: defaultDate.toDate(),
+    endTime: null,
     location: '',
     isAllDay: false,
     repeatType: 'NONE',
-    remindAt: ''
+    remindAt: null
   }
   dialogVisible.value = true
 }
@@ -136,18 +140,23 @@ function openEditDialog(event: Event) {
   form.value = {
     title: event.title,
     description: event.description || '',
-    startTime: dayjs(event.startTime).format('YYYY-MM-DDTHH:mm'),
-    endTime: event.endTime ? dayjs(event.endTime).format('YYYY-MM-DDTHH:mm') : '',
+    startTime: event.startTime ? dayjs(event.startTime).toDate() : null,
+    endTime: event.endTime ? dayjs(event.endTime).toDate() : null,
     location: event.location || '',
     isAllDay: event.isAllDay,
     repeatType: event.repeatType,
-    remindAt: event.remindAt ? dayjs(event.remindAt).format('YYYY-MM-DDTHH:mm') : ''
+    remindAt: event.remindAt ? dayjs(event.remindAt).toDate() : null
   }
   dialogVisible.value = true
 }
 
 async function handleSubmit() {
   try {
+    if (!form.value.startTime) {
+      ElMessage.error(t('calendar.startTime') + ' is required')
+      return
+    }
+
     const data = {
       title: form.value.title,
       description: form.value.description,
@@ -188,7 +197,8 @@ async function handleDelete() {
 
 function formatEventTime(event: Event) {
   if (event.isAllDay) return t('calendar.allDay')
-  return dayjs(event.startTime).format('HH:mm')
+  // Convert UTC to local time
+  return dayjs.utc(event.startTime).local().format('HH:mm')
 }
 </script>
 

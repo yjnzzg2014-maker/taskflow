@@ -134,6 +134,10 @@ export default {
     longBreakDuration: '长休息时长',
     autoStartBreaks: '自动开始休息',
     autoStartWork: '自动开始工作',
-    sound: '提示音'
+    sound: '提示音',
+    selectTask: '选择关联任务',
+    today: '今日',
+    todayMinutes: '今日分钟',
+    week: '本周'
   }
 }

@@ -134,6 +134,10 @@ export default {
     longBreakDuration: 'Long Break',
     autoStartBreaks: 'Auto Start Breaks',
     autoStartWork: 'Auto Start Work',
-    sound: 'Sound'
+    sound: 'Sound',
+    selectTask: 'Select Task',
+    today: 'Today',
+    todayMinutes: 'Today Mins',
+    week: 'This Week'
   }
 }

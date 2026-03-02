@@ -1,9 +1,12 @@
 <script setup lang="ts">
-import { ref, computed, watch, onUnmounted } from 'vue'
+import { ref, computed, watch, onUnmounted, onMounted } from 'vue'
 import { useI18n } from 'vue-i18n'
-import { ElMessage, ElPopover } from 'element-plus'
+import { ElMessage } from 'element-plus'
+import { pomodoroApi } from '@/api'
+import { useTaskStore } from '@/stores/task'
 
 const { t } = useI18n()
+const taskStore = useTaskStore()
 
 // Timer state
 const isRunning = ref(false)
@@ -12,8 +15,13 @@ const mode = ref<'work' | 'shortBreak' | 'longBreak'>('work')
 const timeLeft = ref(25 * 60) // seconds
 const totalTime = ref(25 * 60)
 const sessionsCompleted = ref(0)
+const selectedTaskId = ref<number | null>(null)
+const showPanel = ref(false)
 
 let timerInterval: ReturnType<typeof setInterval> | null = null
+
+// Stats
+const stats = ref<any>(null)
 
 // Settings
 const workDuration = ref(25)
@@ -48,6 +56,31 @@ const modeColor = computed(() => {
     case 'longBreak': return '#409eff'
   }
 })
+
+const selectedTask = computed(() => {
+  return taskStore.tasks.find(t => t.id === selectedTaskId.value)
+})
+
+// Fetch tasks and stats on mount
+taskStore.fetchTasks()
+fetchStats()
+
+async function fetchStats() {
+  try {
+    const response = await pomodoroApi.getStats()
+    stats.value = response.data
+  } catch (e) {
+    console.error('Failed to fetch pomodoro stats', e)
+  }
+}
+
+function togglePanel() {
+  showPanel.value = !showPanel.value
+}
+
+function closePanel() {
+  showPanel.value = false
+}
 
 function startTimer() {
   if (isRunning.value && !isPaused.value) return
@@ -105,7 +138,7 @@ function switchMode(newMode: 'work' | 'shortBreak' | 'longBreak') {
   setDuration()
 }
 
-function timerComplete() {
+async function timerComplete() {
   resetTimer()
 
   if (soundEnabled.value) {
@@ -115,6 +148,19 @@ function timerComplete() {
   if (mode.value === 'work') {
     sessionsCompleted.value++
     ElMessage.success(t('pomodoro.workComplete'))
+
+    // Save pomodoro record
+    try {
+      await pomodoroApi.createRecord({
+        taskId: selectedTaskId.value || undefined,
+        mode: 'WORK',
+        duration: workDuration.value,
+        notes: ''
+      })
+      fetchStats()
+    } catch (e) {
+      console.error('Failed to save pomodoro record', e)
+    }
 
     // After work, take a break
     if (sessionsCompleted.value % 4 === 0) {
@@ -154,34 +200,80 @@ function playNotificationSound() {
   }
 }
 
-// Watch for mode changes
-watch(mode, () => {
-  setDuration()
+// Close panel when clicking outside
+function handleClickOutside(event: MouseEvent) {
+  const target = event.target as HTMLElement
+  if (!target.closest('.pomodoro-wrapper')) {
+    closePanel()
+  }
+}
+
+onMounted(() => {
+  document.addEventListener('click', handleClickOutside)
 })
 
 onUnmounted(() => {
+  document.removeEventListener('click', handleClickOutside)
   if (timerInterval) {
     clearInterval(timerInterval)
   }
 })
+
+// Watch for mode changes
+watch(mode, () => {
+  setDuration()
+})
 </script>
 
 <template>
-  <div class="pomodoro-compact">
-    <el-popover
-      placement="bottom-end"
-      :width="280"
-      trigger="click"
-    >
-      <template #reference>
-        <div class="timer-display">
-          <div class="timer-ring" :style="{ '--progress': progress, '--color': modeColor }">
-            <span class="timer-time">{{ formattedTime }}</span>
+  <div class="pomodoro-wrapper">
+    <div class="timer-display" @click="togglePanel">
+      <div class="timer-ring" :style="{ '--progress': progress, '--color': modeColor }">
+        <span class="timer-time">{{ formattedTime }}</span>
+      </div>
+    </div>
+
+    <!-- Custom Panel -->
+    <Transition name="fade">
+      <div v-if="showPanel" class="pomodoro-panel">
+        <!-- Stats Section -->
+        <div class="stats-section" v-if="stats">
+          <div class="stat-item">
+            <span class="stat-label">{{ t('pomodoro.today') }}</span>
+            <span class="stat-value">{{ stats.todaySessions }}</span>
+          </div>
+          <div class="stat-item">
+            <span class="stat-label">{{ t('pomodoro.todayMinutes') }}</span>
+            <span class="stat-value">{{ stats.todayMinutes }}min</span>
+          </div>
+          <div class="stat-item">
+            <span class="stat-label">{{ t('pomodoro.week') }}</span>
+            <span class="stat-value">{{ stats.weekSessions }}</span>
           </div>
         </div>
-      </template>
 
-      <div class="pomodoro-panel">
+        <!-- Task Selection -->
+        <div class="task-selection" v-if="mode === 'work'">
+          <el-select
+            v-model="selectedTaskId"
+            :placeholder="t('pomodoro.selectTask')"
+            clearable
+            size="small"
+            style="width: 100%"
+            @click.stop
+          >
+            <el-option
+              v-for="task in taskStore.tasks"
+              :key="task.id"
+              :label="task.title"
+              :value="task.id"
+            />
+          </el-select>
+          <div class="selected-task" v-if="selectedTask">
+            <el-tag size="small" type="info">{{ selectedTask.title }}</el-tag>
+          </div>
+        </div>
+
         <div class="timer-display-large">
           <div class="timer-ring" :style="{ '--progress': progress, '--color': modeColor }">
             <div class="timer-inner">
@@ -197,7 +289,7 @@ onUnmounted(() => {
             type="primary"
             circle
             size="small"
-            @click="startTimer"
+            @click.stop="startTimer"
           >
             <el-icon><VideoPlay /></el-icon>
           </el-button>
@@ -206,7 +298,7 @@ onUnmounted(() => {
             type="warning"
             circle
             size="small"
-            @click="pauseTimer"
+            @click.stop="pauseTimer"
           >
             <el-icon><VideoPause /></el-icon>
           </el-button>
@@ -215,11 +307,11 @@ onUnmounted(() => {
             type="primary"
             circle
             size="small"
-            @click="startTimer"
+            @click.stop="startTimer"
           >
             <el-icon><VideoPlay /></el-icon>
           </el-button>
-          <el-button circle size="small" @click="resetTimer">
+          <el-button circle size="small" @click.stop="resetTimer">
             <el-icon><Refresh /></el-icon>
           </el-button>
         </div>
@@ -228,21 +320,21 @@ onUnmounted(() => {
           <el-button
             :type="mode === 'work' ? 'danger' : 'default'"
             size="small"
-            @click="switchMode('work')"
+            @click.stop="switchMode('work')"
           >
             {{ t('pomodoro.work') }}
           </el-button>
           <el-button
             :type="mode === 'shortBreak' ? 'success' : 'default'"
             size="small"
-            @click="switchMode('shortBreak')"
+            @click.stop="switchMode('shortBreak')"
           >
             {{ t('pomodoro.shortBreak') }}
           </el-button>
           <el-button
             :type="mode === 'longBreak' ? 'primary' : 'default'"
             size="small"
-            @click="switchMode('longBreak')"
+            @click.stop="switchMode('longBreak')"
           >
             {{ t('pomodoro.longBreak') }}
           </el-button>
@@ -257,33 +349,34 @@ onUnmounted(() => {
         <div class="settings-section">
           <el-form label-width="100px" size="small">
             <el-form-item :label="t('pomodoro.workDuration')">
-              <el-input-number v-model="workDuration" :min="1" :max="60" controls-position="right" />
+              <el-input-number v-model="workDuration" :min="1" :max="60" controls-position="right" @click.stop />
             </el-form-item>
             <el-form-item :label="t('pomodoro.shortBreakDuration')">
-              <el-input-number v-model="shortBreakDuration" :min="1" :max="30" controls-position="right" />
+              <el-input-number v-model="shortBreakDuration" :min="1" :max="30" controls-position="right" @click.stop />
             </el-form-item>
             <el-form-item :label="t('pomodoro.longBreakDuration')">
-              <el-input-number v-model="longBreakDuration" :min="1" :max="60" controls-position="right" />
+              <el-input-number v-model="longBreakDuration" :min="1" :max="60" controls-position="right" @click.stop />
             </el-form-item>
             <el-form-item :label="t('pomodoro.autoStartBreaks')">
-              <el-switch v-model="autoStartBreaks" />
+              <el-switch v-model="autoStartBreaks" @click.stop />
             </el-form-item>
             <el-form-item :label="t('pomodoro.autoStartWork')">
-              <el-switch v-model="autoStartWork" />
+              <el-switch v-model="autoStartWork" @click.stop />
             </el-form-item>
             <el-form-item :label="t('pomodoro.sound')">
-              <el-switch v-model="soundEnabled" />
+              <el-switch v-model="soundEnabled" @click.stop />
             </el-form-item>
           </el-form>
         </div>
       </div>
-    </el-popover>
+    </Transition>
   </div>
 </template>
 
 <style scoped lang="scss">
-.pomodoro-compact {
-  display: inline-flex;
+.pomodoro-wrapper {
+  position: relative;
+  display: inline-block;
 }
 
 .timer-display {
@@ -313,10 +406,66 @@ onUnmounted(() => {
 }
 
 .pomodoro-panel {
+  position: absolute;
+  top: 100%;
+  right: 0;
+  margin-top: 8px;
+  width: 300px;
+  padding: 12px;
+  background: var(--bg-color);
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.15);
+  z-index: 1000;
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 12px;
+  gap: 10px;
+}
+
+.fade-enter-active,
+.fade-leave-active {
+  transition: opacity 0.2s ease;
+}
+
+.fade-enter-from,
+.fade-leave-to {
+  opacity: 0;
+}
+
+.stats-section {
+  display: flex;
+  justify-content: space-around;
+  width: 100%;
+  padding: 8px;
+  background: var(--bg-color-secondary);
+  border-radius: 8px;
+
+  .stat-item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+
+    .stat-label {
+      font-size: 10px;
+      color: var(--text-color-secondary);
+    }
+
+    .stat-value {
+      font-size: 16px;
+      font-weight: 600;
+      color: var(--primary-color);
+    }
+  }
+}
+
+.task-selection {
+  width: 100%;
+
+  .selected-task {
+    margin-top: 4px;
+    text-align: center;
+  }
 }
 
 .timer-display-large {
@@ -365,6 +514,8 @@ onUnmounted(() => {
 }
 
 .settings-section {
+  width: 100%;
+
   :deep(.el-form-item) {
     margin-bottom: 8px;
   }
