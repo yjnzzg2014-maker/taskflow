@@ -1,0 +1,26 @@
+# Backend
+backend/target/
+backend/*.log
+
+# Frontend
+frontend/node_modules/
+frontend/dist/
+frontend/.env.local
+frontend/.env.*.local
+
+# IDE
+.idea/
+.vscode/
+*.iml
+.claude/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+npm-debug.log*
+
+# Environment
+.env
