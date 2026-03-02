@@ -1,10 +1,11 @@
 <script setup lang="ts">
 import { ref, onMounted } from 'vue'
-import { ElMessage } from 'element-plus'
 import { useI18n } from 'vue-i18n'
+import { useMessage } from 'naive-ui'
 import { useAuthStore } from '@/stores/auth'
 
 const { t } = useI18n()
+const message = useMessage()
 const authStore = useAuthStore()
 const loading = ref(false)
 
@@ -21,8 +22,7 @@ onMounted(() => {
 })
 
 async function handleSubmit() {
-  // Implement profile update logic
-  ElMessage.success(t('common.success'))
+  message.success(t('common.success'))
 }
 </script>
 
@@ -30,17 +30,17 @@ async function handleSubmit() {
   <div class="profile-page">
     <h1 class="page-title">{{ t('profile.title') }}</h1>
 
-    <el-row :gutter="20">
-      <el-col :span="8">
-        <el-card shadow="hover">
+    <n-grid :cols="24" :x-gap="20">
+      <n-grid-item :span="8">
+        <n-card hoverable>
           <div class="profile-avatar">
-            <el-avatar :size="120">
+            <n-avatar :size="120" round>
               {{ authStore.user?.username?.[0]?.toUpperCase() }}
-            </el-avatar>
+            </n-avatar>
             <h3>{{ authStore.user?.username }}</h3>
-            <el-tag>{{ authStore.user?.role }}</el-tag>
+            <n-tag>{{ authStore.user?.role }}</n-tag>
           </div>
-          <el-divider />
+          <n-divider />
           <div class="profile-info">
             <div class="info-item">
               <span class="label">{{ t('profile.email') }}:</span>
@@ -51,51 +51,51 @@ async function handleSubmit() {
               <span class="value">{{ authStore.user?.createdAt }}</span>
             </div>
           </div>
-        </el-card>
-      </el-col>
+        </n-card>
+      </n-grid-item>
 
-      <el-col :span="16">
-        <el-card shadow="hover">
+      <n-grid-item :span="16">
+        <n-card hoverable>
           <template #header>
             <span>{{ t('profile.editProfile') }}</span>
           </template>
 
-          <el-form :model="form" label-width="100px">
-            <el-form-item :label="t('profile.username')">
-              <el-input :value="authStore.user?.username" disabled />
-            </el-form-item>
+          <n-form :model="form" label-placement="left" label-width="100px">
+            <n-form-item :label="t('profile.username')">
+              <n-input :value="authStore.user?.username" disabled />
+            </n-form-item>
 
-            <el-form-item :label="t('profile.email')">
-              <el-input v-model="form.email" />
-            </el-form-item>
+            <n-form-item :label="t('profile.email')">
+              <n-input v-model:value="form.email" />
+            </n-form-item>
 
-            <el-form-item :label="t('profile.avatarUrl')">
-              <el-input v-model="form.avatar" placeholder="https://..." />
-            </el-form-item>
+            <n-form-item :label="t('profile.avatarUrl')">
+              <n-input v-model:value="form.avatar" placeholder="https://..." />
+            </n-form-item>
 
-            <el-form-item>
-              <el-button type="primary" :loading="loading" @click="handleSubmit">
+            <n-form-item>
+              <n-button type="primary" :loading="loading" @click="handleSubmit">
                 {{ t('common.save') }}
-              </el-button>
-            </el-form-item>
-          </el-form>
-        </el-card>
+              </n-button>
+            </n-form-item>
+          </n-form>
+        </n-card>
 
-        <el-card shadow="hover" style="margin-top: 20px">
+        <n-card hoverable style="margin-top: 20px">
           <template #header>
             <span>{{ t('profile.preferences') }}</span>
           </template>
 
           <div class="preference-item">
             <span>{{ t('profile.darkMode') }}</span>
-            <el-switch
-              :model-value="authStore.isDark"
-              @change="authStore.toggleDarkMode"
+            <n-switch
+              :value="authStore.isDark"
+              @update:value="authStore.setDarkMode"
             />
           </div>
-        </el-card>
-      </el-col>
-    </el-row>
+        </n-card>
+      </n-grid-item>
+    </n-grid>
   </div>
 </template>
 
@@ -120,14 +120,14 @@ async function handleSubmit() {
     display: flex;
     justify-content: space-between;
     padding: 12px 0;
-    border-bottom: 1px solid var(--border-color);
+    border-bottom: 1px solid var(--n-border-color);
 
     &:last-child {
       border-bottom: none;
     }
 
     .label {
-      color: #909399;
+      color: var(--n-text-color-3);
     }
 
     .value {

@@ -2,14 +2,14 @@
 import { reactive, ref } from 'vue'
 import { useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
-import { ElMessage } from 'element-plus'
+import { useMessage } from 'naive-ui'
 import { useAuthStore } from '@/stores/auth'
-import type { FormInstance, FormRules } from 'element-plus'
 
 const { t } = useI18n()
 const router = useRouter()
 const authStore = useAuthStore()
-const formRef = ref<FormInstance>()
+const message = useMessage()
+const formRef = ref()
 const loading = ref(false)
 
 const form = reactive({
@@ -19,126 +19,132 @@ const form = reactive({
   confirmPassword: ''
 })
 
-const validateConfirmPassword = (_rule: any, value: any, callback: any) => {
-  if (value !== form.password) {
-    callback(new Error(t('auth.passwordMismatch')))
-  } else {
-    callback()
+const validateConfirmPassword = () => {
+  if (form.confirmPassword !== form.password) {
+    return new Error(t('auth.passwordMismatch'))
   }
 }
 
-const rules: FormRules = {
-  username: [
-    { required: true, message: t('auth.username'), trigger: 'blur' },
-    { min: 3, max: 50, message: t('auth.usernameLength'), trigger: 'blur' }
-  ],
+const rules = {
+  username: {
+    required: true,
+    message: t('auth.username'),
+    trigger: 'blur'
+  },
   email: [
-    { required: true, message: t('auth.email'), trigger: 'blur' },
-    { type: 'email', message: t('auth.emailValid'), trigger: 'blur' }
+    {
+      required: true,
+      message: t('auth.email'),
+      trigger: 'blur'
+    },
+    {
+      type: 'email',
+      message: t('auth.emailValid'),
+      trigger: 'blur'
+    }
   ],
-  password: [
-    { required: true, message: t('auth.password'), trigger: 'blur' },
-    { min: 6, max: 100, message: t('auth.passwordLength'), trigger: 'blur' }
-  ],
-  confirmPassword: [
-    { required: true, message: t('auth.confirmPassword'), trigger: 'blur' },
-    { validator: validateConfirmPassword, trigger: 'blur' }
-  ]
+  password: {
+    required: true,
+    message: t('auth.password'),
+    trigger: 'blur'
+  },
+  confirmPassword: {
+    required: true,
+    message: t('auth.confirmPassword'),
+    trigger: 'blur',
+    validator: validateConfirmPassword
+  }
 }
 
 async function handleRegister() {
-  if (!formRef.value) return
-
-  await formRef.value.validate(async (valid) => {
-    if (valid) {
-      loading.value = true
-      try {
-        await authStore.register({
-          username: form.username,
-          email: form.email,
-          password: form.password
-        })
-        ElMessage.success(t('auth.registerSuccess'))
-        router.push('/')
-      } catch (error: any) {
-        ElMessage.error(error.response?.data?.message || t('auth.registerFailed'))
-      } finally {
-        loading.value = false
-      }
+  try {
+    await formRef.value?.validate()
+    loading.value = true
+    await authStore.register({
+      username: form.username,
+      email: form.email,
+      password: form.password
+    })
+    message.success(t('auth.registerSuccess'))
+    router.push('/')
+  } catch (error: any) {
+    if (error?.response) {
+      message.error(error.response?.data?.message || t('auth.registerFailed'))
     }
-  })
+  } finally {
+    loading.value = false
+  }
 }
 </script>
 
 <template>
   <div class="register-container">
-    <div class="register-box">
+    <n-card class="register-box">
       <div class="register-header">
-        <el-icon :size="48" color="#409eff"><Calendar /></el-icon>
+        <n-icon :size="48" color="#18a058">
+          <Calendar />
+        </n-icon>
         <h1>TaskFlow</h1>
         <p>{{ t('auth.register') }}</p>
       </div>
 
-      <el-form ref="formRef" :model="form" :rules="rules" class="register-form">
-        <el-form-item prop="username">
-          <el-input
-            v-model="form.username"
+      <n-form ref="formRef" :model="form" :rules="rules" class="register-form">
+        <n-form-item path="username" :label="t('auth.username')">
+          <n-input
+            v-model:value="form.username"
             :placeholder="t('auth.username')"
-            prefix-icon="User"
             size="large"
           />
-        </el-form-item>
+        </n-form-item>
 
-        <el-form-item prop="email">
-          <el-input
-            v-model="form.email"
+        <n-form-item path="email" :label="t('auth.email')">
+          <n-input
+            v-model:value="form.email"
             :placeholder="t('auth.email')"
-            prefix-icon="Message"
             size="large"
           />
-        </el-form-item>
+        </n-form-item>
 
-        <el-form-item prop="password">
-          <el-input
-            v-model="form.password"
+        <n-form-item path="password" :label="t('auth.password')">
+          <n-input
+            v-model:value="form.password"
             type="password"
             :placeholder="t('auth.password')"
-            prefix-icon="Lock"
             size="large"
-            show-password
+            show-password-on="click"
           />
-        </el-form-item>
+        </n-form-item>
 
-        <el-form-item prop="confirmPassword">
-          <el-input
-            v-model="form.confirmPassword"
+        <n-form-item path="confirmPassword" :label="t('auth.confirmPassword')">
+          <n-input
+            v-model:value="form.confirmPassword"
             type="password"
             :placeholder="t('auth.confirmPassword')"
-            prefix-icon="Lock"
             size="large"
-            show-password
+            show-password-on="click"
             @keyup.enter="handleRegister"
           />
-        </el-form-item>
+        </n-form-item>
 
-        <el-form-item>
-          <el-button
+        <n-form-item>
+          <n-button
             type="primary"
             size="large"
             :loading="loading"
             class="register-btn"
+            block
             @click="handleRegister"
           >
             {{ t('auth.register') }}
-          </el-button>
-        </el-form-item>
-      </el-form>
+          </n-button>
+        </n-form-item>
+      </n-form>
 
       <div class="register-footer">
         <span>{{ t('auth.hasAccount') }}</span>
         <router-link to="/login">{{ t('auth.login') }}</router-link>
       </div>
-    </div>
+    </n-card>
   </div>
 </template>
 
@@ -153,14 +159,6 @@ async function handleRegister() {
 
 .register-box {
   width: 400px;
-  padding: 40px;
-  background: #fff;
-  border-radius: 12px;
-  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
-
-  .dark & {
-    background: #1a1a1a;
-  }
 }
 
 .register-header {
@@ -171,32 +169,26 @@ async function handleRegister() {
     font-size: 28px;
     font-weight: 600;
     margin: 16px 0 8px;
-    color: #303133;
-
-    .dark & {
-      color: #e5e5e5;
-    }
+    color: var(--n-text-color);
   }
 
   p {
-    color: #909399;
+    color: var(--n-text-color-3);
     font-size: 14px;
   }
 }
 
-.register-form {
-  .register-btn {
-    width: 100%;
-  }
+.register-btn {
+  width: 100%;
 }
 
 .register-footer {
   text-align: center;
   margin-top: 16px;
-  color: #909399;
+  color: var(--n-text-color-3);
 
   a {
-    color: #409eff;
+    color: #18a058;
     margin-left: 4px;
     text-decoration: none;
 

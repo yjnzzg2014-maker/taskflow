@@ -7,6 +7,7 @@ import { PieChart, LineChart, BarChart } from 'echarts/charts'
 import { GridComponent, TooltipComponent, LegendComponent, TitleComponent } from 'echarts/components'
 import VChart from 'vue-echarts'
 import { statsApi } from '@/api'
+import { GridOutline, CheckmarkCircleOutline, TimeOutline, WarningOutline } from '@vicons/ionicons5'
 
 const { t } = useI18n()
 
@@ -41,10 +42,10 @@ async function fetchDashboardData() {
           avoidLabelOverlap: false,
           itemStyle: { borderRadius: 10, borderColor: '#fff', borderWidth: 2 },
           data: [
-            { value: stats.value.completedTasks, name: t('task.statuses.completed'), itemStyle: { color: '#67c23a' } },
+            { value: stats.value.completedTasks, name: t('task.statuses.completed'), itemStyle: { color: '#18a058' } },
             { value: stats.value.pendingTasks, name: t('task.statuses.pending'), itemStyle: { color: '#909399' } },
-            { value: stats.value.inProgressTasks, name: t('task.statuses.inProgress'), itemStyle: { color: '#409eff' } },
-            { value: stats.value.overdueTasks, name: t('dashboard.overdueTasks'), itemStyle: { color: '#f56c6c' } }
+            { value: stats.value.inProgressTasks, name: t('task.statuses.inProgress'), itemStyle: { color: '#18a058' } },
+            { value: stats.value.overdueTasks, name: t('dashboard.overdueTasks'), itemStyle: { color: '#d03050' } }
           ]
         }
       ]
@@ -66,14 +67,14 @@ async function fetchDashboardData() {
           type: 'line',
           data: trendData.map((d: any) => d.created),
           smooth: true,
-          itemStyle: { color: '#409eff' }
+          itemStyle: { color: '#18a058' }
         },
         {
           name: t('task.statuses.completed'),
           type: 'line',
           data: trendData.map((d: any) => d.completed),
           smooth: true,
-          itemStyle: { color: '#67c23a' }
+          itemStyle: { color: '#18a058' }
         }
       ]
     }
@@ -91,8 +92,8 @@ async function fetchDashboardData() {
           data: priorityData.map((d: any) => d.count),
           itemStyle: {
             color: (params: any) => {
-              const colors = ['#909399', '#409eff', '#e6a23c', '#f56c6c']
-              return colors[params.dataIndex] || '#409eff'
+              const colors = ['#909399', '#18a058', '#f0a020', '#d03050']
+              return colors[params.dataIndex] || '#18a058'
             }
           }
         }
@@ -112,95 +113,95 @@ const formatNumber = (num: number) => {
   <div class="dashboard">
     <h1 class="page-title">{{ t('dashboard.title') }}</h1>
 
-    <el-row :gutter="20" class="stats-row">
-      <el-col :span="6">
-        <el-card shadow="hover" class="stat-card">
-          <div class="stat-icon" style="background: #409eff">
-            <el-icon :size="32"><List /></el-icon>
+    <n-grid :cols="4" :x-gap="20" :y-gap="20" class="stats-row">
+      <n-gi>
+        <n-card hoverable class="stat-card">
+          <div class="stat-icon" style="background: #18a058">
+            <n-icon :size="32"><GridOutline /></n-icon>
           </div>
           <div class="stat-content">
             <div class="stat-value">{{ formatNumber(stats?.totalTasks) }}</div>
             <div class="stat-label">{{ t('dashboard.totalTasks') }}</div>
           </div>
-        </el-card>
-      </el-col>
+        </n-card>
+      </n-gi>
 
-      <el-col :span="6">
-        <el-card shadow="hover" class="stat-card">
-          <div class="stat-icon" style="background: #67c23a">
-            <el-icon :size="32"><CircleCheck /></el-icon>
+      <n-gi>
+        <n-card hoverable class="stat-card">
+          <div class="stat-icon" style="background: #18a058">
+            <n-icon :size="32"><CheckmarkCircleOutline /></n-icon>
           </div>
           <div class="stat-content">
             <div class="stat-value">{{ formatNumber(stats?.completedTasks) }}</div>
             <div class="stat-label">{{ t('dashboard.completedTasks') }}</div>
           </div>
-        </el-card>
-      </el-col>
+        </n-card>
+      </n-gi>
 
-      <el-col :span="6">
-        <el-card shadow="hover" class="stat-card">
-          <div class="stat-icon" style="background: #e6a23c">
-            <el-icon :size="32"><Clock /></el-icon>
+      <n-gi>
+        <n-card hoverable class="stat-card">
+          <div class="stat-icon" style="background: #f0a020">
+            <n-icon :size="32"><TimeOutline /></n-icon>
           </div>
           <div class="stat-content">
             <div class="stat-value">{{ formatNumber(stats?.todayTasks) }}</div>
             <div class="stat-label">{{ t('dashboard.todayTasks') }}</div>
           </div>
-        </el-card>
-      </el-col>
+        </n-card>
+      </n-gi>
 
-      <el-col :span="6">
-        <el-card shadow="hover" class="stat-card">
-          <div class="stat-icon" style="background: #f56c6c">
-            <el-icon :size="32"><Warning /></el-icon>
+      <n-gi>
+        <n-card hoverable class="stat-card">
+          <div class="stat-icon" style="background: #d03050">
+            <n-icon :size="32"><WarningOutline /></n-icon>
           </div>
           <div class="stat-content">
             <div class="stat-value">{{ formatNumber(stats?.overdueTasks) }}</div>
             <div class="stat-label">{{ t('dashboard.overdueTasks') }}</div>
           </div>
-        </el-card>
-      </el-col>
-    </el-row>
+        </n-card>
+      </n-gi>
+    </n-grid>
 
-    <el-row :gutter="20" class="chart-row">
-      <el-col :span="8">
-        <el-card shadow="hover">
+    <n-grid :cols="24" :x-gap="20" :y-gap="20" class="chart-row">
+      <n-gi :span="8">
+        <n-card hoverable>
           <template #header>
             <span>{{ t('dashboard.taskStatus') }}</span>
           </template>
           <v-chart :option="pieOption" :autoresize="true" style="height: 300px" />
-        </el-card>
-      </el-col>
+        </n-card>
+      </n-gi>
 
-      <el-col :span="16">
-        <el-card shadow="hover">
+      <n-gi :span="16">
+        <n-card hoverable>
           <template #header>
             <span>{{ t('dashboard.taskTrend') }}</span>
           </template>
           <v-chart :option="lineOption" :autoresize="true" style="height: 300px" />
-        </el-card>
-      </el-col>
-    </el-row>
+        </n-card>
+      </n-gi>
+    </n-grid>
 
-    <el-row :gutter="20">
-      <el-col :span="12">
-        <el-card shadow="hover">
+    <n-grid :cols="24" :x-gap="20" :y-gap="20">
+      <n-gi :span="12">
+        <n-card hoverable>
           <template #header>
             <span>{{ t('dashboard.priorityDistribution') }}</span>
           </template>
           <v-chart :option="barOption" :autoresize="true" style="height: 300px" />
-        </el-card>
-      </el-col>
+        </n-card>
+      </n-gi>
 
-      <el-col :span="12">
-        <el-card shadow="hover">
+      <n-gi :span="12">
+        <n-card hoverable>
           <template #header>
             <span>{{ t('dashboard.quickStats') }}</span>
           </template>
           <div class="quick-stats">
             <div class="quick-stat-item">
               <span class="label">{{ t('dashboard.completionRate') }}</span>
-              <el-progress :percentage="Math.round(stats?.completionRate || 0)" :stroke-width="12" />
+              <n-progress type="line" :percentage="Math.round(stats?.completionRate || 0)" :stroke-width="12" />
             </div>
             <div class="quick-stat-item">
               <span class="label">{{ t('dashboard.totalEvents') }}</span>
@@ -215,9 +216,9 @@ const formatNumber = (num: number) => {
               <span class="value">{{ formatNumber(stats?.pendingTasks) }}</span>
             </div>
           </div>
-        </el-card>
-      </el-col>
-    </el-row>
+        </n-card>
+      </n-gi>
+    </n-grid>
   </div>
 </template>
 
@@ -252,16 +253,12 @@ const formatNumber = (num: number) => {
     .stat-value {
       font-size: 28px;
       font-weight: 600;
-      color: #303133;
-
-      .dark & {
-        color: #e5e5e5;
-      }
+      color: var(--n-text-color);
     }
 
     .stat-label {
       font-size: 14px;
-      color: #909399;
+      color: var(--n-text-color-3);
     }
   }
 }
@@ -278,24 +275,20 @@ const formatNumber = (num: number) => {
     justify-content: space-between;
     align-items: center;
     padding: 12px 0;
-    border-bottom: 1px solid var(--border-color);
+    border-bottom: 1px solid var(--n-border-color);
 
     &:last-child {
       border-bottom: none;
     }
 
     .label {
-      color: #606266;
+      color: var(--n-text-color-3);
     }
 
     .value {
       font-size: 18px;
       font-weight: 600;
-      color: #303133;
-
-      .dark & {
-        color: #e5e5e5;
-      }
+      color: var(--n-text-color);
     }
   }
 }

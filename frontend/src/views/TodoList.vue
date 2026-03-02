@@ -1,12 +1,15 @@
 <script setup lang="ts">
 import { ref, onMounted, computed } from 'vue'
 import dayjs from 'dayjs'
-import { ElMessage, ElMessageBox } from 'element-plus'
 import { useI18n } from 'vue-i18n'
+import { useMessage, useDialog } from 'naive-ui'
 import { useTaskStore } from '@/stores/task'
 import type { Task } from '@/types'
+import { Add, Trash, Time, List } from '@vicons/ionicons5'
 
 const { t } = useI18n()
+const message = useMessage()
+const dialog = useDialog()
 const taskStore = useTaskStore()
 
 const dialogVisible = ref(false)
@@ -20,22 +23,22 @@ const form = ref<{
   description: string
   priority: 'LOW' | 'MEDIUM' | 'HIGH' | 'URGENT'
   status: 'PENDING' | 'IN_PROGRESS' | 'COMPLETED'
-  dueDate: string
+  dueDate: number | null
   categoryId: number | null
 }>({
   title: '',
   description: '',
   priority: 'MEDIUM',
   status: 'PENDING',
-  dueDate: '',
+  dueDate: null,
   categoryId: null
 })
 
 const priorityOptions = computed(() => [
   { label: t('task.priorities.low'), value: 'LOW', color: '#909399' },
-  { label: t('task.priorities.medium'), value: 'MEDIUM', color: '#409eff' },
-  { label: t('task.priorities.high'), value: 'HIGH', color: '#e6a23c' },
-  { label: t('task.priorities.urgent'), value: 'URGENT', color: '#f56c6c' }
+  { label: t('task.priorities.medium'), value: 'MEDIUM', color: '#18a058' },
+  { label: t('task.priorities.high'), value: 'HIGH', color: '#f0a020' },
+  { label: t('task.priorities.urgent'), value: 'URGENT', color: '#d03050' }
 ])
 
 const statusOptions = computed(() => [
@@ -75,7 +78,7 @@ function openDialog(task?: Task) {
       description: task.description || '',
       priority: task.priority,
       status: task.status,
-      dueDate: task.dueDate || '',
+      dueDate: task.dueDate ? new Date(task.dueDate).getTime() : null,
       categoryId: task.category?.id || null
     }
   } else {
@@ -86,7 +89,7 @@ function openDialog(task?: Task) {
       description: '',
       priority: 'MEDIUM',
       status: 'PENDING',
-      dueDate: '',
+      dueDate: null,
       categoryId: null
     }
   }
@@ -106,44 +109,43 @@ async function handleSubmit() {
 
     if (isEdit.value && currentTask.value.id) {
       await taskStore.updateTask(currentTask.value.id, data)
-      ElMessage.success(t('common.success'))
+      message.success(t('common.success'))
     } else {
       await taskStore.createTask(data)
-      ElMessage.success(t('common.success'))
+      message.success(t('common.success'))
     }
     dialogVisible.value = false
   } catch (error: any) {
-    ElMessage.error(error.response?.data?.message || t('common.failed'))
+    message.error(error.response?.data?.message || t('common.failed'))
   }
 }
 
 async function handleDelete(task: Task) {
-  try {
-    await ElMessageBox.confirm(t('common.confirm') + '?', 'Warning', {
-      type: 'warning'
-    })
-    await taskStore.deleteTask(task.id)
-    ElMessage.success(t('common.success'))
-  } catch (error: any) {
-    if (error !== 'cancel') {
-      ElMessage.error(error.response?.data?.message || t('common.failed'))
+  dialog.warning({
+    title: t('common.confirm'),
+    content: t('common.confirm') + '?',
+    positiveText: t('common.delete'),
+    negativeText: t('common.cancel'),
+    onPositiveClick: async () => {
+      await taskStore.deleteTask(task.id)
+      message.success(t('common.success'))
     }
-  }
+  })
 }
 
 async function toggleTaskStatus(task: Task) {
   const newStatus = task.status === 'COMPLETED' ? 'PENDING' : 'COMPLETED'
   try {
     await taskStore.updateTask(task.id, { status: newStatus })
-    ElMessage.success(t('common.success'))
+    message.success(t('common.success'))
   } catch (error: any) {
-    ElMessage.error(t('common.failed'))
+    message.error(t('common.failed'))
   }
 }
 
 function getPriorityColor(priority: string) {
   const option = priorityOptions.value.find((o: any) => o.value === priority)
-  return option?.color || '#409eff'
+  return option?.color || '#18a058'
 }
 
 function formatDueDate(date?: string) {
@@ -162,126 +164,125 @@ function isOverdue(task: Task): boolean {
     <div class="todo-header">
       <h1 class="page-title">{{ t('task.title') }}</h1>
       <div class="todo-actions">
-        <el-input
-          v-model="searchKeyword"
+        <n-input
+          v-model:value="searchKeyword"
           :placeholder="t('common.search')"
-          prefix-icon="Search"
           style="width: 200px"
           clearable
         />
-        <el-select v-model="filterStatus" :placeholder="t('common.filter')" style="width: 150px" clearable>
-          <el-option :label="t('common.filter')" value="" />
-          <el-option :label="t('task.statuses.pending')" value="PENDING" />
-          <el-option :label="t('task.statuses.inProgress')" value="IN_PROGRESS" />
-          <el-option :label="t('task.statuses.completed')" value="COMPLETED" />
-        </el-select>
-        <el-button type="primary" @click="openDialog()">
-          <el-icon><Plus /></el-icon>
+        <n-select
+          v-model:value="filterStatus"
+          :placeholder="t('common.filter')"
+          style="width: 150px"
+          clearable
+          :options="[
+            { label: t('common.filter'), value: '' },
+            { label: t('task.statuses.pending'), value: 'PENDING' },
+            { label: t('task.statuses.inProgress'), value: 'IN_PROGRESS' },
+            { label: t('task.statuses.completed'), value: 'COMPLETED' }
+          ]"
+        />
+        <n-button type="primary" @click="openDialog()">
+          <template #icon>
+            <n-icon :component="Add" />
+          </template>
           {{ t('task.newTask') }}
-        </el-button>
+        </n-button>
       </div>
     </div>
 
     <div class="task-list">
-      <el-card
+      <n-card
         v-for="task in filteredTasks"
         :key="task.id"
-        shadow="hover"
+        hoverable
         class="task-card"
         :class="{ completed: task.status === 'COMPLETED', overdue: isOverdue(task) }"
       >
         <div class="task-content">
-          <el-checkbox
-            :model-value="task.status === 'COMPLETED'"
-            @change="toggleTaskStatus(task)"
-            class="task-checkbox"
+          <n-checkbox
+            :checked="task.status === 'COMPLETED'"
+            @update:checked="toggleTaskStatus(task)"
           />
           <div class="task-info" @click="openDialog(task)">
             <div class="task-title">
               <span :class="{ 'line-through': task.status === 'COMPLETED' }">{{ task.title }}</span>
-              <el-tag :color="getPriorityColor(task.priority)" size="small" class="priority-tag">
+              <n-tag :color="{ color: getPriorityColor(task.priority), textColor: '#fff' }" size="small">
                 {{ task.priority }}
-              </el-tag>
+              </n-tag>
             </div>
             <div v-if="task.description" class="task-description">
               {{ task.description }}
             </div>
             <div class="task-meta">
-              <el-tag v-if="task.dueDate" size="small" :type="isOverdue(task) ? 'danger' : 'info'">
-                <el-icon><Clock /></el-icon>
+              <n-tag v-if="task.dueDate" size="small" :type="isOverdue(task) ? 'error' : 'default'">
+                <template #icon>
+                  <n-icon :component="Time" />
+                </template>
                 {{ formatDueDate(task.dueDate) }}
-              </el-tag>
-              <el-tag v-if="task.category" size="small">
+              </n-tag>
+              <n-tag v-if="task.category" size="small">
                 {{ task.category.name }}
-              </el-tag>
+              </n-tag>
               <span class="subtask-count" v-if="task.subTasks?.length">
-                <el-icon><List /></el-icon>
+                <n-icon :component="List" />
                 {{ task.subTasks.filter(s => s.isCompleted).length }}/{{ task.subTasks.length }}
               </span>
             </div>
           </div>
           <div class="task-actions">
-            <el-button type="danger" text @click.stop="handleDelete(task)">
-              <el-icon><Delete /></el-icon>
-            </el-button>
+            <n-button text type="error" @click.stop="handleDelete(task)">
+              <template #icon>
+                <n-icon :component="Trash" />
+              </template>
+            </n-button>
           </div>
         </div>
-      </el-card>
+      </n-card>
 
-      <el-empty v-if="filteredTasks.length === 0" :description="t('common.noData')" />
+      <n-empty v-if="filteredTasks.length === 0" :description="t('common.noData')" />
     </div>
 
-    <el-dialog
-      v-model="dialogVisible"
+    <n-modal
+      v-model:show="dialogVisible"
       :title="isEdit ? t('task.editTask') : t('task.newTask')"
-      width="500px"
+      preset="card"
+      style="width: 500px"
     >
-      <el-form :model="form" label-width="100px">
-        <el-form-item :label="t('task.taskTitle')" required>
-          <el-input v-model="form.title" :placeholder="t('task.taskTitle')" />
-        </el-form-item>
+      <n-form :model="form" label-placement="left" label-width="100px">
+        <n-form-item :label="t('task.taskTitle')" required>
+          <n-input v-model:value="form.title" :placeholder="t('task.taskTitle')" />
+        </n-form-item>
 
-        <el-form-item :label="t('task.description')">
-          <el-input v-model="form.description" type="textarea" :rows="3" />
-        </el-form-item>
+        <n-form-item :label="t('task.description')">
+          <n-input v-model:value="form.description" type="textarea" :rows="3" />
+        </n-form-item>
 
-        <el-form-item :label="t('task.priority')">
-          <el-select v-model="form.priority" style="width: 100%">
-            <el-option
-              v-for="option in priorityOptions"
-              :key="option.value"
-              :label="option.label"
-              :value="option.value"
-            />
-          </el-select>
-        </el-form-item>
+        <n-form-item :label="t('task.priority')">
+          <n-select v-model:value="form.priority" :options="priorityOptions" />
+        </n-form-item>
 
-        <el-form-item :label="t('task.status')">
-          <el-select v-model="form.status" style="width: 100%">
-            <el-option
-              v-for="option in statusOptions"
-              :key="option.value"
-              :label="option.label"
-              :value="option.value"
-            />
-          </el-select>
-        </el-form-item>
+        <n-form-item :label="t('task.status')">
+          <n-select v-model:value="form.status" :options="statusOptions" />
+        </n-form-item>
 
-        <el-form-item :label="t('task.dueDate')">
-          <el-date-picker
-            v-model="form.dueDate"
+        <n-form-item :label="t('task.dueDate')">
+          <n-date-picker
+            v-model:value="form.dueDate"
             type="datetime"
             :placeholder="t('task.dueDate')"
             style="width: 100%"
           />
-        </el-form-item>
-      </el-form>
+        </n-form-item>
+      </n-form>
 
       <template #footer>
-        <el-button @click="dialogVisible = false">{{ t('common.cancel') }}</el-button>
-        <el-button type="primary" @click="handleSubmit">{{ isEdit ? t('common.edit') : t('common.create') }}</el-button>
+        <div class="dialog-footer">
+          <n-button @click="dialogVisible = false">{{ t('common.cancel') }}</n-button>
+          <n-button type="primary" @click="handleSubmit">{{ isEdit ? t('common.edit') : t('common.create') }}</n-button>
+        </div>
       </template>
-    </el-dialog>
+    </n-modal>
   </div>
 </template>
 
@@ -325,17 +326,13 @@ function isOverdue(task: Task): boolean {
   }
 
   &.overdue {
-    border-left: 3px solid #f56c6c;
+    border-left: 3px solid #d03050;
   }
 
   .task-content {
     display: flex;
     align-items: flex-start;
     gap: 12px;
-  }
-
-  .task-checkbox {
-    margin-top: 4px;
   }
 
   .task-info {
@@ -350,16 +347,11 @@ function isOverdue(task: Task): boolean {
     display: flex;
     align-items: center;
     gap: 8px;
-
-    .priority-tag {
-      color: #fff;
-      border: none;
-    }
   }
 
   .task-description {
     font-size: 14px;
-    color: #606266;
+    color: var(--n-text-color-3);
     margin-bottom: 8px;
     display: -webkit-box;
     -webkit-line-clamp: 2;
@@ -375,7 +367,7 @@ function isOverdue(task: Task): boolean {
 
     .subtask-count {
       font-size: 12px;
-      color: #909399;
+      color: var(--n-text-color-3);
       display: flex;
       align-items: center;
       gap: 4px;
@@ -390,5 +382,11 @@ function isOverdue(task: Task): boolean {
 
 .line-through {
   text-decoration: line-through;
+}
+
+.dialog-footer {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
 }
 </style>

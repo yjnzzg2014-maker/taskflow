@@ -1,10 +1,11 @@
 <script setup lang="ts">
-import { ref, computed } from 'vue'
+import { ref, computed, h } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 import { useAuthStore } from '@/stores/auth'
 import LanguageSwitcher from '@/components/LanguageSwitcher.vue'
 import PomodoroTimer from '@/components/PomodoroTimer.vue'
+import { GridOutline, CalendarOutline, ListOutline, PersonOutline, Moon, Sunny } from '@vicons/ionicons5'
 
 const { t } = useI18n()
 const router = useRouter()
@@ -14,10 +15,10 @@ const authStore = useAuthStore()
 const isCollapse = ref(false)
 
 const menuItems = computed(() => [
-  { path: '/', title: t('nav.dashboard'), icon: 'DataBoard' },
-  { path: '/calendar', title: t('nav.calendar'), icon: 'Calendar' },
-  { path: '/tasks', title: t('nav.tasks'), icon: 'List' },
-  { path: '/profile', title: t('nav.profile'), icon: 'User' }
+  { label: t('nav.dashboard'), key: '/', icon: () => h(GridOutline) },
+  { label: t('nav.calendar'), key: '/calendar', icon: () => h(CalendarOutline) },
+  { label: t('nav.tasks'), key: '/tasks', icon: () => h(ListOutline) },
+  { label: t('nav.profile'), key: '/profile', icon: () => h(PersonOutline) }
 ])
 
 const activeMenu = computed(() => route.path)
@@ -29,62 +30,67 @@ function handleLogout() {
 </script>
 
 <template>
-  <el-container class="app-container">
-    <el-aside :width="isCollapse ? '64px' : '200px'" class="app-aside">
+  <n-layout has-sider class="app-container">
+    <n-layout-sider
+      bordered
+      :width="isCollapse ? 64 : 200"
+      :collapsed-width="64"
+      :collapsed="isCollapse"
+      show-trigger
+      collapse-mode="width"
+      :native-scrollbar="false"
+      class="app-aside"
+      @collapse="isCollapse = true"
+      @expand="isCollapse = false"
+    >
       <div class="logo">
-        <el-icon :size="24"><Calendar /></el-icon>
-        <span v-show="!isCollapse" class="logo-text">TaskFlow</span>
+        <n-icon :size="24" color="#18a058">
+          <CalendarOutline />
+        </n-icon>
+        <span v-if="!isCollapse" class="logo-text">TaskFlow</span>
       </div>
-      <el-menu
-        :default-active="activeMenu"
-        :collapse="isCollapse"
-        :collapse-transition="false"
-        router
-        class="app-menu"
-      >
-        <el-menu-item v-for="item in menuItems" :key="item.path" :index="item.path">
-          <el-icon><component :is="item.icon" /></el-icon>
-          <template #title>{{ item.title }}</template>
-        </el-menu-item>
-      </el-menu>
-    </el-aside>
+      <n-menu
+        :collapsed="isCollapse"
+        :collapsed-width="64"
+        :value="activeMenu"
+        :options="menuItems"
+        @update:value="(key: string) => router.push(key)"
+      />
+    </n-layout-sider>
 
-    <el-container>
-      <el-header class="app-header">
+    <n-layout>
+      <n-layout-header bordered class="app-header">
         <div class="header-left">
-          <el-icon class="collapse-btn" @click="isCollapse = !isCollapse">
-            <Fold v-if="!isCollapse" />
-            <Expand v-else />
-          </el-icon>
+          <span></span>
         </div>
         <div class="header-right">
           <PomodoroTimer />
           <LanguageSwitcher />
-          <el-switch
-            v-model="authStore.isDark"
-            :active-action-icon="'Moon'"
-            :inactive-action-icon="'Sunny'"
-            @change="(val: string | number | boolean) => authStore.setDarkMode(val as boolean)"
-          />
-          <el-dropdown @command="handleLogout">
-            <span class="user-info">
-              <el-avatar :size="32">{{ authStore.user?.username?.[0]?.toUpperCase() }}</el-avatar>
-              <span class="username">{{ authStore.user?.username }}</span>
-            </span>
-            <template #dropdown>
-              <el-dropdown-menu>
-                <el-dropdown-item command="logout">{{ t('auth.logout') }}</el-dropdown-item>
-              </el-dropdown-menu>
+          <n-switch
+            :value="authStore.isDark"
+            @update:value="authStore.setDarkMode"
+          >
+            <template #checked-icon>
+              <n-icon :component="Moon" />
             </template>
-          </el-dropdown>
+            <template #unchecked-icon>
+              <n-icon :component="Sunny" />
+            </template>
+          </n-switch>
+          <n-dropdown :options="[{ label: t('auth.logout'), key: 'logout' }]" @select="handleLogout">
+            <n-button quaternary>
+              <n-avatar :size="24" round>{{ authStore.user?.username?.[0]?.toUpperCase() }}</n-avatar>
+              <span class="username">{{ authStore.user?.username }}</span>
+            </n-button>
+          </n-dropdown>
         </div>
-      </el-header>
+      </n-layout-header>
 
-      <el-main class="app-main">
+      <n-layout-content class="app-main">
         <router-view />
-      </el-main>
-    </el-container>
-  </el-container>
+      </n-layout-content>
+    </n-layout>
+  </n-layout>
 </template>
 
 <style scoped lang="scss">
@@ -93,47 +99,29 @@ function handleLogout() {
 }
 
 .app-aside {
-  background-color: #fff;
-  border-right: 1px solid var(--border-color);
-  transition: width 0.3s;
-  overflow: hidden;
+  .logo {
+    height: 60px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    border-bottom: 1px solid var(--n-border-color);
+    color: #18a058;
 
-  .dark & {
-    background-color: #1a1a1a;
+    .logo-text {
+      font-size: 18px;
+      font-weight: 600;
+      white-space: nowrap;
+    }
   }
-}
-
-.logo {
-  height: 60px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 8px;
-  border-bottom: 1px solid var(--border-color);
-  color: var(--primary-color);
-
-  .logo-text {
-    font-size: 18px;
-    font-weight: 600;
-    white-space: nowrap;
-  }
-}
-
-.app-menu {
-  border-right: none;
 }
 
 .app-header {
-  background-color: #fff;
-  border-bottom: 1px solid var(--border-color);
   display: flex;
   justify-content: space-between;
   align-items: center;
   padding: 0 20px;
-
-  .dark & {
-    background-color: #1a1a1a;
-  }
+  height: 60px;
 }
 
 .header-left {
@@ -142,31 +130,19 @@ function handleLogout() {
   gap: 16px;
 }
 
-.collapse-btn {
-  cursor: pointer;
-  font-size: 20px;
-}
-
 .header-right {
   display: flex;
   align-items: center;
-  gap: 16px;
+  gap: 12px;
 }
 
-.user-info {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  cursor: pointer;
-
-  .username {
-    font-size: 14px;
-  }
+.username {
+  margin-left: 8px;
+  font-size: 14px;
 }
 
 .app-main {
-  background-color: var(--bg-color);
   padding: 20px;
-  overflow-y: auto;
+  background: var(--n-color);
 }
 </style>

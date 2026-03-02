@@ -2,14 +2,14 @@
 import { reactive, ref } from 'vue'
 import { useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
-import { ElMessage } from 'element-plus'
+import { useMessage } from 'naive-ui'
 import { useAuthStore } from '@/stores/auth'
-import type { FormInstance, FormRules } from 'element-plus'
 
 const { t } = useI18n()
 const router = useRouter()
 const authStore = useAuthStore()
-const formRef = ref<FormInstance>()
+const message = useMessage()
+const formRef = ref()
 const loading = ref(false)
 
 const form = reactive({
@@ -17,84 +17,86 @@ const form = reactive({
   password: ''
 })
 
-const rules: FormRules = {
-  username: [
-    { required: true, message: t('auth.username'), trigger: 'blur' }
-  ],
-  password: [
-    { required: true, message: t('auth.password'), trigger: 'blur' }
-  ]
+const rules = {
+  username: {
+    required: true,
+    message: t('auth.username'),
+    trigger: 'blur'
+  },
+  password: {
+    required: true,
+    message: t('auth.password'),
+    trigger: 'blur'
+  }
 }
 
 async function handleLogin() {
-  if (!formRef.value) return
-
-  await formRef.value.validate(async (valid) => {
-    if (valid) {
-      loading.value = true
-      try {
-        await authStore.login(form)
-        ElMessage.success(t('auth.loginSuccess'))
-        router.push('/')
-      } catch (error: any) {
-        ElMessage.error(error.response?.data?.message || t('auth.loginFailed'))
-      } finally {
-        loading.value = false
-      }
+  try {
+    await formRef.value?.validate()
+    loading.value = true
+    await authStore.login(form)
+    message.success(t('auth.loginSuccess'))
+    router.push('/')
+  } catch (error: any) {
+    if (error?.response) {
+      message.error(error.response?.data?.message || t('auth.loginFailed'))
     }
-  })
+  } finally {
+    loading.value = false
+  }
 }
 </script>
 
 <template>
   <div class="login-container">
-    <div class="login-box">
+    <n-card class="login-box">
       <div class="login-header">
-        <el-icon :size="48" color="#409eff"><Calendar /></el-icon>
+        <n-icon :size="48" color="#18a058">
+          <Calendar />
+        </n-icon>
         <h1>TaskFlow</h1>
         <p>{{ t('common.language') }}</p>
       </div>
 
-      <el-form ref="formRef" :model="form" :rules="rules" class="login-form">
-        <el-form-item prop="username">
-          <el-input
-            v-model="form.username"
+      <n-form ref="formRef" :model="form" :rules="rules" class="login-form">
+        <n-form-item path="username" :label="t('auth.username')">
+          <n-input
+            v-model:value="form.username"
             :placeholder="t('auth.username')"
-            prefix-icon="User"
             size="large"
           />
-        </el-form-item>
+        </n-form-item>
 
-        <el-form-item prop="password">
-          <el-input
-            v-model="form.password"
+        <n-form-item path="password" :label="t('auth.password')">
+          <n-input
+            v-model:value="form.password"
             type="password"
             :placeholder="t('auth.password')"
-            prefix-icon="Lock"
             size="large"
-            show-password
+            show-password-on="click"
             @keyup.enter="handleLogin"
           />
-        </el-form-item>
+        </n-form-item>
 
-        <el-form-item>
-          <el-button
+        <n-form-item>
+          <n-button
             type="primary"
             size="large"
             :loading="loading"
             class="login-btn"
+            block
             @click="handleLogin"
           >
             {{ t('auth.login') }}
-          </el-button>
-        </el-form-item>
-      </el-form>
+          </n-button>
+        </n-form-item>
+      </n-form>
 
       <div class="login-footer">
         <span>{{ t('auth.noAccount') }}</span>
         <router-link to="/register">{{ t('auth.register') }}</router-link>
       </div>
-    </div>
+    </n-card>
   </div>
 </template>
 
@@ -109,14 +111,6 @@ async function handleLogin() {
 
 .login-box {
   width: 400px;
-  padding: 40px;
-  background: #fff;
-  border-radius: 12px;
-  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
-
-  .dark & {
-    background: #1a1a1a;
-  }
 }
 
 .login-header {
@@ -127,32 +121,26 @@ async function handleLogin() {
     font-size: 28px;
     font-weight: 600;
     margin: 16px 0 8px;
-    color: #303133;
-
-    .dark & {
-      color: #e5e5e5;
-    }
+    color: var(--n-text-color);
   }
 
   p {
-    color: #909399;
+    color: var(--n-text-color-3);
     font-size: 14px;
   }
 }
 
-.login-form {
-  .login-btn {
-    width: 100%;
-  }
+.login-btn {
+  width: 100%;
 }
 
 .login-footer {
   text-align: center;
   margin-top: 16px;
-  color: #909399;
+  color: var(--n-text-color-3);
 
   a {
-    color: #409eff;
+    color: #18a058;
     margin-left: 4px;
     text-decoration: none;
 

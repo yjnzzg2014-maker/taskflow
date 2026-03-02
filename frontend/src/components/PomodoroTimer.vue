@@ -1,11 +1,12 @@
 <script setup lang="ts">
 import { ref, computed, watch, onUnmounted, onMounted } from 'vue'
 import { useI18n } from 'vue-i18n'
-import { ElMessage } from 'element-plus'
+import { useMessage } from 'naive-ui'
 import { pomodoroApi } from '@/api'
 import { useTaskStore } from '@/stores/task'
 
 const { t } = useI18n()
+const message = useMessage()
 const taskStore = useTaskStore()
 
 // Timer state
@@ -147,7 +148,7 @@ async function timerComplete() {
 
   if (mode.value === 'work') {
     sessionsCompleted.value++
-    ElMessage.success(t('pomodoro.workComplete'))
+    message.success(t('pomodoro.workComplete'))
 
     // Save pomodoro record
     try {
@@ -171,7 +172,7 @@ async function timerComplete() {
       if (autoStartBreaks.value) startTimer()
     }
   } else {
-    ElMessage.success(t('pomodoro.breakComplete'))
+    message.success(t('pomodoro.breakComplete'))
     switchMode('work')
     if (autoStartWork.value) startTimer()
   }

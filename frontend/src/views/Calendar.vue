@@ -2,18 +2,19 @@
 import { ref, onMounted, computed } from 'vue'
 import dayjs from 'dayjs'
 import utc from 'dayjs/plugin/utc'
-import { ElMessage } from 'element-plus'
 import { useI18n } from 'vue-i18n'
+import { useMessage } from 'naive-ui'
 import { useEventStore } from '@/stores/event'
 import type { Event } from '@/types'
+import { ArrowBack, ArrowForward, Add } from '@vicons/ionicons5'
 
 dayjs.extend(utc)
 
 const { t } = useI18n()
+const message = useMessage()
 const eventStore = useEventStore()
 
 const currentDate = ref(dayjs())
-// const viewMode = ref<'month' | 'week' | 'day'>('month')
 const dialogVisible = ref(false)
 const isEdit = ref(false)
 const currentEvent = ref<Partial<Event>>({})
@@ -46,7 +47,6 @@ const calendarDays = computed(() => {
 
   const days = []
 
-  // Previous month days
   for (let i = 0; i < startDay; i++) {
     days.push({
       date: startOfMonth.subtract(startDay - i, 'day'),
@@ -55,7 +55,6 @@ const calendarDays = computed(() => {
     })
   }
 
-  // Current month days
   for (let i = 1; i <= daysInMonth; i++) {
     const date = currentDate.value.date(i)
     const dayEvents = eventStore.events.filter(e => {
@@ -69,7 +68,6 @@ const calendarDays = computed(() => {
     })
   }
 
-  // Next month days to fill the grid
   const remaining = 42 - days.length
   for (let i = 1; i <= remaining; i++) {
     days.push({
@@ -90,6 +88,14 @@ const weekDays = computed(() => [
   t('calendar.weekdays.thu'),
   t('calendar.weekdays.fri'),
   t('calendar.weekdays.sat')
+])
+
+const repeatOptions = computed(() => [
+  { label: t('calendar.repeatTypes.none'), value: 'NONE' },
+  { label: t('calendar.repeatTypes.daily'), value: 'DAILY' },
+  { label: t('calendar.repeatTypes.weekly'), value: 'WEEKLY' },
+  { label: t('calendar.repeatTypes.monthly'), value: 'MONTHLY' },
+  { label: t('calendar.repeatTypes.custom'), value: 'CUSTOM' }
 ])
 
 onMounted(async () => {
@@ -153,7 +159,7 @@ function openEditDialog(event: Event) {
 async function handleSubmit() {
   try {
     if (!form.value.startTime) {
-      ElMessage.error(t('calendar.startTime') + ' is required')
+      message.error(t('calendar.startTime') + ' is required')
       return
     }
 
@@ -170,15 +176,15 @@ async function handleSubmit() {
 
     if (isEdit.value && currentEvent.value.id) {
       await eventStore.updateEvent(currentEvent.value.id, data)
-      ElMessage.success(t('common.success'))
+      message.success(t('common.success'))
     } else {
       await eventStore.createEvent(data)
-      ElMessage.success(t('common.success'))
+      message.success(t('common.success'))
     }
     dialogVisible.value = false
     await fetchEvents()
   } catch (error: any) {
-    ElMessage.error(error.response?.data?.message || t('common.failed'))
+    message.error(error.response?.data?.message || t('common.failed'))
   }
 }
 
@@ -187,17 +193,16 @@ async function handleDelete() {
 
   try {
     await eventStore.deleteEvent(currentEvent.value.id)
-    ElMessage.success(t('common.success'))
+    message.success(t('common.success'))
     dialogVisible.value = false
     await fetchEvents()
   } catch (error: any) {
-    ElMessage.error(error.response?.data?.message || t('common.failed'))
+    message.error(error.response?.data?.message || t('common.failed'))
   }
 }
 
 function formatEventTime(event: Event) {
   if (event.isAllDay) return t('calendar.allDay')
-  // Convert UTC to local time
   return dayjs.utc(event.startTime).local().format('HH:mm')
 }
 </script>
@@ -207,20 +212,30 @@ function formatEventTime(event: Event) {
     <div class="calendar-header">
       <h1 class="page-title">{{ t('calendar.title') }}</h1>
       <div class="calendar-actions">
-        <el-button-group>
-          <el-button @click="prevMonth"><el-icon><ArrowLeft /></el-icon></el-button>
-          <el-button @click="goToday">{{ t('calendar.today') }}</el-button>
-          <el-button @click="nextMonth"><el-icon><ArrowRight /></el-icon></el-button>
-        </el-button-group>
+        <n-button-group>
+          <n-button @click="prevMonth">
+            <template #icon>
+              <n-icon :component="ArrowBack" />
+            </template>
+          </n-button>
+          <n-button @click="goToday">{{ t('calendar.today') }}</n-button>
+          <n-button @click="nextMonth">
+            <template #icon>
+              <n-icon :component="ArrowForward" />
+            </template>
+          </n-button>
+        </n-button-group>
         <span class="current-month">{{ currentDate.format('MMMM YYYY') }}</span>
-        <el-button type="primary" @click="openDialog()">
-          <el-icon><Plus /></el-icon>
+        <n-button type="primary" @click="openDialog()">
+          <template #icon>
+            <n-icon :component="Add" />
+          </template>
           {{ t('calendar.newEvent') }}
-        </el-button>
+        </n-button>
       </div>
     </div>
 
-    <el-card shadow="never" class="calendar-card">
+    <n-card :bordered="false" class="calendar-card">
       <div class="calendar-grid">
         <div v-for="day in weekDays" :key="day" class="calendar-weekday">{{ day }}</div>
         <div
@@ -250,76 +265,71 @@ function formatEventTime(event: Event) {
           </div>
         </div>
       </div>
-    </el-card>
+    </n-card>
 
-    <el-dialog
-      v-model="dialogVisible"
+    <n-modal
+      v-model:show="dialogVisible"
       :title="isEdit ? t('calendar.editEvent') : t('calendar.newEvent')"
-      width="500px"
+      preset="card"
+      style="width: 500px"
     >
-      <el-form :model="form" label-width="100px">
-        <el-form-item :label="t('calendar.eventTitle')" required>
-          <el-input v-model="form.title" :placeholder="t('calendar.eventTitle')" />
-        </el-form-item>
+      <n-form :model="form" label-placement="left" label-width="100px">
+        <n-form-item :label="t('calendar.eventTitle')" required>
+          <n-input v-model:value="form.title" :placeholder="t('calendar.eventTitle')" />
+        </n-form-item>
 
-        <el-form-item :label="t('calendar.description')">
-          <el-input v-model="form.description" type="textarea" :rows="3" />
-        </el-form-item>
+        <n-form-item :label="t('calendar.description')">
+          <n-input v-model:value="form.description" type="textarea" :rows="3" />
+        </n-form-item>
 
-        <el-form-item :label="t('calendar.allDay')">
-          <el-switch v-model="form.isAllDay" />
-        </el-form-item>
+        <n-form-item :label="t('calendar.allDay')">
+          <n-switch v-model:value="form.isAllDay" />
+        </n-form-item>
 
-        <el-form-item :label="t('calendar.startTime')" required>
-          <el-date-picker
-            v-model="form.startTime"
+        <n-form-item :label="t('calendar.startTime')" required>
+          <n-date-picker
+            v-model:value="form.startTime"
             type="datetime"
             :placeholder="t('calendar.startTime')"
             style="width: 100%"
           />
-        </el-form-item>
+        </n-form-item>
 
-        <el-form-item :label="t('calendar.endTime')">
-          <el-date-picker
-            v-model="form.endTime"
+        <n-form-item :label="t('calendar.endTime')">
+          <n-date-picker
+            v-model:value="form.endTime"
             type="datetime"
             :placeholder="t('calendar.endTime')"
             style="width: 100%"
           />
-        </el-form-item>
+        </n-form-item>
 
-        <el-form-item :label="t('calendar.location')">
-          <el-input v-model="form.location" :placeholder="t('calendar.location')" />
-        </el-form-item>
+        <n-form-item :label="t('calendar.location')">
+          <n-input v-model:value="form.location" :placeholder="t('calendar.location')" />
+        </n-form-item>
 
-        <el-form-item :label="t('calendar.repeat')">
-          <el-select v-model="form.repeatType" style="width: 100%">
-            <el-option :label="t('calendar.repeatTypes.none')" value="NONE" />
-            <el-option :label="t('calendar.repeatTypes.daily')" value="DAILY" />
-            <el-option :label="t('calendar.repeatTypes.weekly')" value="WEEKLY" />
-            <el-option :label="t('calendar.repeatTypes.monthly')" value="MONTHLY" />
-            <el-option :label="t('calendar.repeatTypes.custom')" value="CUSTOM" />
-          </el-select>
-        </el-form-item>
+        <n-form-item :label="t('calendar.repeat')">
+          <n-select v-model:value="form.repeatType" :options="repeatOptions" />
+        </n-form-item>
 
-        <el-form-item :label="t('calendar.remind')">
-          <el-date-picker
-            v-model="form.remindAt"
+        <n-form-item :label="t('calendar.remind')">
+          <n-date-picker
+            v-model:value="form.remindAt"
             type="datetime"
             :placeholder="t('calendar.remind')"
             style="width: 100%"
           />
-        </el-form-item>
-      </el-form>
+        </n-form-item>
+      </n-form>
 
       <template #footer>
         <div class="dialog-footer">
-          <el-button v-if="isEdit" type="danger" @click="handleDelete">{{ t('common.delete') }}</el-button>
-          <el-button @click="dialogVisible = false">{{ t('common.cancel') }}</el-button>
-          <el-button type="primary" @click="handleSubmit">{{ isEdit ? t('common.edit') : t('common.create') }}</el-button>
+          <n-button v-if="isEdit" type="error" @click="handleDelete">{{ t('common.delete') }}</n-button>
+          <n-button @click="dialogVisible = false">{{ t('common.cancel') }}</n-button>
+          <n-button type="primary" @click="handleSubmit">{{ isEdit ? t('common.edit') : t('common.create') }}</n-button>
         </div>
       </template>
-    </el-dialog>
+    </n-modal>
   </div>
 </template>
 
@@ -351,12 +361,6 @@ function formatEventTime(event: Event) {
   }
 }
 
-.calendar-card {
-  :deep(.el-card__body) {
-    padding: 0;
-  }
-}
-
 .calendar-grid {
   display: grid;
   grid-template-columns: repeat(7, 1fr);
@@ -366,28 +370,20 @@ function formatEventTime(event: Event) {
   padding: 12px;
   text-align: center;
   font-weight: 600;
-  border-bottom: 1px solid var(--border-color);
-  background: #f5f7fa;
-
-  .dark & {
-    background: #2a2a2a;
-  }
+  border-bottom: 1px solid var(--n-border-color);
+  background: var(--n-color-hover);
 }
 
 .calendar-day {
   min-height: 120px;
   padding: 8px;
-  border-right: 1px solid var(--border-color);
-  border-bottom: 1px solid var(--border-color);
+  border-right: 1px solid var(--n-border-color);
+  border-bottom: 1px solid var(--n-border-color);
   cursor: pointer;
   transition: background 0.2s;
 
   &:hover {
-    background: #f5f7fa;
-
-    .dark & {
-      background: #2a2a2a;
-    }
+    background: var(--n-color-hover);
   }
 
   &:nth-child(7n) {
@@ -396,13 +392,13 @@ function formatEventTime(event: Event) {
 
   &.other-month {
     .day-number {
-      color: #c0c4cc;
+      color: var(--n-text-color-3);
     }
   }
 
   &.today {
     .day-number {
-      background: #409eff;
+      background: #18a058;
       color: #fff;
       border-radius: 50%;
       width: 28px;
@@ -425,7 +421,7 @@ function formatEventTime(event: Event) {
       padding: 2px 6px;
       margin-bottom: 2px;
       border-radius: 4px;
-      background: #409eff;
+      background: #18a058;
       color: #fff;
       white-space: nowrap;
       overflow: hidden;
@@ -443,7 +439,7 @@ function formatEventTime(event: Event) {
 
     .more-events {
       font-size: 11px;
-      color: #909399;
+      color: var(--n-text-color-3);
       padding: 2px 6px;
     }
   }
