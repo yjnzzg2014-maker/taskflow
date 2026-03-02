@@ -1,20 +1,24 @@
 <script setup lang="ts">
 import { ref, computed } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
+import { useI18n } from 'vue-i18n'
 import { useAuthStore } from '@/stores/auth'
+import LanguageSwitcher from '@/components/LanguageSwitcher.vue'
+import PomodoroTimer from '@/components/PomodoroTimer.vue'
 
+const { t } = useI18n()
 const router = useRouter()
 const route = useRoute()
 const authStore = useAuthStore()
 
 const isCollapse = ref(false)
 
-const menuItems = [
-  { path: '/', title: 'Dashboard', icon: 'DataBoard' },
-  { path: '/calendar', title: 'Calendar', icon: 'Calendar' },
-  { path: '/tasks', title: 'Tasks', icon: 'List' },
-  { path: '/profile', title: 'Profile', icon: 'User' }
-]
+const menuItems = computed(() => [
+  { path: '/', title: t('nav.dashboard'), icon: 'DataBoard' },
+  { path: '/calendar', title: t('nav.calendar'), icon: 'Calendar' },
+  { path: '/tasks', title: t('nav.tasks'), icon: 'List' },
+  { path: '/profile', title: t('nav.profile'), icon: 'User' }
+])
 
 const activeMenu = computed(() => route.path)
 
@@ -54,11 +58,13 @@ function handleLogout() {
           </el-icon>
         </div>
         <div class="header-right">
+          <PomodoroTimer />
+          <LanguageSwitcher />
           <el-switch
             v-model="authStore.isDark"
             :active-action-icon="'Moon'"
             :inactive-action-icon="'Sunny'"
-            @change="authStore.toggleDarkMode"
+            @change="(val: string | number | boolean) => authStore.setDarkMode(val as boolean)"
           />
           <el-dropdown @command="handleLogout">
             <span class="user-info">
@@ -67,7 +73,7 @@ function handleLogout() {
             </span>
             <template #dropdown>
               <el-dropdown-menu>
-                <el-dropdown-item command="logout">Logout</el-dropdown-item>
+                <el-dropdown-item command="logout">{{ t('auth.logout') }}</el-dropdown-item>
               </el-dropdown-menu>
             </template>
           </el-dropdown>

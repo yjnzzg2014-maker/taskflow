@@ -1,11 +1,14 @@
 <script setup lang="ts">
 import { ref, onMounted } from 'vue'
+import { useI18n } from 'vue-i18n'
 import { use } from 'echarts/core'
 import { CanvasRenderer } from 'echarts/renderers'
 import { PieChart, LineChart, BarChart } from 'echarts/charts'
 import { GridComponent, TooltipComponent, LegendComponent, TitleComponent } from 'echarts/components'
 import VChart from 'vue-echarts'
 import { statsApi } from '@/api'
+
+const { t } = useI18n()
 
 use([CanvasRenderer, PieChart, LineChart, BarChart, GridComponent, TooltipComponent, LegendComponent, TitleComponent])
 
@@ -38,10 +41,10 @@ async function fetchDashboardData() {
           avoidLabelOverlap: false,
           itemStyle: { borderRadius: 10, borderColor: '#fff', borderWidth: 2 },
           data: [
-            { value: stats.value.completedTasks, name: 'Completed', itemStyle: { color: '#67c23a' } },
-            { value: stats.value.pendingTasks, name: 'Pending', itemStyle: { color: '#909399' } },
-            { value: stats.value.inProgressTasks, name: 'In Progress', itemStyle: { color: '#409eff' } },
-            { value: stats.value.overdueTasks, name: 'Overdue', itemStyle: { color: '#f56c6c' } }
+            { value: stats.value.completedTasks, name: t('task.statuses.completed'), itemStyle: { color: '#67c23a' } },
+            { value: stats.value.pendingTasks, name: t('task.statuses.pending'), itemStyle: { color: '#909399' } },
+            { value: stats.value.inProgressTasks, name: t('task.statuses.inProgress'), itemStyle: { color: '#409eff' } },
+            { value: stats.value.overdueTasks, name: t('dashboard.overdueTasks'), itemStyle: { color: '#f56c6c' } }
           ]
         }
       ]
@@ -59,14 +62,14 @@ async function fetchDashboardData() {
       yAxis: { type: 'value' },
       series: [
         {
-          name: 'Created',
+          name: t('task.statuses.completed'),
           type: 'line',
           data: trendData.map((d: any) => d.created),
           smooth: true,
           itemStyle: { color: '#409eff' }
         },
         {
-          name: 'Completed',
+          name: t('task.statuses.completed'),
           type: 'line',
           data: trendData.map((d: any) => d.completed),
           smooth: true,
@@ -107,7 +110,7 @@ const formatNumber = (num: number) => {
 
 <template>
   <div class="dashboard">
-    <h1 class="page-title">Dashboard</h1>
+    <h1 class="page-title">{{ t('dashboard.title') }}</h1>
 
     <el-row :gutter="20" class="stats-row">
       <el-col :span="6">
@@ -117,7 +120,7 @@ const formatNumber = (num: number) => {
           </div>
           <div class="stat-content">
             <div class="stat-value">{{ formatNumber(stats?.totalTasks) }}</div>
-            <div class="stat-label">Total Tasks</div>
+            <div class="stat-label">{{ t('dashboard.totalTasks') }}</div>
           </div>
         </el-card>
       </el-col>
@@ -129,7 +132,7 @@ const formatNumber = (num: number) => {
           </div>
           <div class="stat-content">
             <div class="stat-value">{{ formatNumber(stats?.completedTasks) }}</div>
-            <div class="stat-label">Completed</div>
+            <div class="stat-label">{{ t('dashboard.completedTasks') }}</div>
           </div>
         </el-card>
       </el-col>
@@ -141,7 +144,7 @@ const formatNumber = (num: number) => {
           </div>
           <div class="stat-content">
             <div class="stat-value">{{ formatNumber(stats?.todayTasks) }}</div>
-            <div class="stat-label">Today's Tasks</div>
+            <div class="stat-label">{{ t('dashboard.todayTasks') }}</div>
           </div>
         </el-card>
       </el-col>
@@ -153,7 +156,7 @@ const formatNumber = (num: number) => {
           </div>
           <div class="stat-content">
             <div class="stat-value">{{ formatNumber(stats?.overdueTasks) }}</div>
-            <div class="stat-label">Overdue</div>
+            <div class="stat-label">{{ t('dashboard.overdueTasks') }}</div>
           </div>
         </el-card>
       </el-col>
@@ -163,7 +166,7 @@ const formatNumber = (num: number) => {
       <el-col :span="8">
         <el-card shadow="hover">
           <template #header>
-            <span>Task Status</span>
+            <span>{{ t('dashboard.taskStatus') }}</span>
           </template>
           <v-chart :option="pieOption" :autoresize="true" style="height: 300px" />
         </el-card>
@@ -172,7 +175,7 @@ const formatNumber = (num: number) => {
       <el-col :span="16">
         <el-card shadow="hover">
           <template #header>
-            <span>Task Trend (7 days)</span>
+            <span>{{ t('dashboard.taskTrend') }}</span>
           </template>
           <v-chart :option="lineOption" :autoresize="true" style="height: 300px" />
         </el-card>
@@ -183,7 +186,7 @@ const formatNumber = (num: number) => {
       <el-col :span="12">
         <el-card shadow="hover">
           <template #header>
-            <span>Priority Distribution</span>
+            <span>{{ t('dashboard.priorityDistribution') }}</span>
           </template>
           <v-chart :option="barOption" :autoresize="true" style="height: 300px" />
         </el-card>
@@ -192,23 +195,23 @@ const formatNumber = (num: number) => {
       <el-col :span="12">
         <el-card shadow="hover">
           <template #header>
-            <span>Quick Stats</span>
+            <span>{{ t('dashboard.quickStats') }}</span>
           </template>
           <div class="quick-stats">
             <div class="quick-stat-item">
-              <span class="label">Completion Rate</span>
+              <span class="label">{{ t('dashboard.completionRate') }}</span>
               <el-progress :percentage="Math.round(stats?.completionRate || 0)" :stroke-width="12" />
             </div>
             <div class="quick-stat-item">
-              <span class="label">Total Events</span>
+              <span class="label">{{ t('dashboard.totalEvents') }}</span>
               <span class="value">{{ formatNumber(stats?.totalEvents) }}</span>
             </div>
             <div class="quick-stat-item">
-              <span class="label">Today's Events</span>
+              <span class="label">{{ t('dashboard.todayEvents') }}</span>
               <span class="value">{{ formatNumber(stats?.todayEvents) }}</span>
             </div>
             <div class="quick-stat-item">
-              <span class="label">Pending Tasks</span>
+              <span class="label">{{ t('dashboard.pendingTasks') }}</span>
               <span class="value">{{ formatNumber(stats?.pendingTasks) }}</span>
             </div>
           </div>

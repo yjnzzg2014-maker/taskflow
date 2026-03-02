@@ -2,9 +2,11 @@
 import { ref, onMounted, computed } from 'vue'
 import dayjs from 'dayjs'
 import { ElMessage, ElMessageBox } from 'element-plus'
+import { useI18n } from 'vue-i18n'
 import { useTaskStore } from '@/stores/task'
 import type { Task } from '@/types'
 
+const { t } = useI18n()
 const taskStore = useTaskStore()
 
 const dialogVisible = ref(false)
@@ -29,18 +31,18 @@ const form = ref<{
   categoryId: null
 })
 
-const priorityOptions = [
-  { label: 'Low', value: 'LOW', color: '#909399' },
-  { label: 'Medium', value: 'MEDIUM', color: '#409eff' },
-  { label: 'High', value: 'HIGH', color: '#e6a23c' },
-  { label: 'Urgent', value: 'URGENT', color: '#f56c6c' }
-]
+const priorityOptions = computed(() => [
+  { label: t('task.priorities.low'), value: 'LOW', color: '#909399' },
+  { label: t('task.priorities.medium'), value: 'MEDIUM', color: '#409eff' },
+  { label: t('task.priorities.high'), value: 'HIGH', color: '#e6a23c' },
+  { label: t('task.priorities.urgent'), value: 'URGENT', color: '#f56c6c' }
+])
 
-const statusOptions = [
-  { label: 'Pending', value: 'PENDING' },
-  { label: 'In Progress', value: 'IN_PROGRESS' },
-  { label: 'Completed', value: 'COMPLETED' }
-]
+const statusOptions = computed(() => [
+  { label: t('task.statuses.pending'), value: 'PENDING' },
+  { label: t('task.statuses.inProgress'), value: 'IN_PROGRESS' },
+  { label: t('task.statuses.completed'), value: 'COMPLETED' }
+])
 
 const filteredTasks = computed(() => {
   let tasks = taskStore.tasks
@@ -104,27 +106,27 @@ async function handleSubmit() {
 
     if (isEdit.value && currentTask.value.id) {
       await taskStore.updateTask(currentTask.value.id, data)
-      ElMessage.success('Task updated successfully')
+      ElMessage.success(t('common.success'))
     } else {
       await taskStore.createTask(data)
-      ElMessage.success('Task created successfully')
+      ElMessage.success(t('common.success'))
     }
     dialogVisible.value = false
   } catch (error: any) {
-    ElMessage.error(error.response?.data?.message || 'Operation failed')
+    ElMessage.error(error.response?.data?.message || t('common.failed'))
   }
 }
 
 async function handleDelete(task: Task) {
   try {
-    await ElMessageBox.confirm('Are you sure to delete this task?', 'Warning', {
+    await ElMessageBox.confirm(t('common.confirm') + '?', 'Warning', {
       type: 'warning'
     })
     await taskStore.deleteTask(task.id)
-    ElMessage.success('Task deleted successfully')
+    ElMessage.success(t('common.success'))
   } catch (error: any) {
     if (error !== 'cancel') {
-      ElMessage.error(error.response?.data?.message || 'Delete failed')
+      ElMessage.error(error.response?.data?.message || t('common.failed'))
     }
   }
 }
@@ -133,14 +135,14 @@ async function toggleTaskStatus(task: Task) {
   const newStatus = task.status === 'COMPLETED' ? 'PENDING' : 'COMPLETED'
   try {
     await taskStore.updateTask(task.id, { status: newStatus })
-    ElMessage.success('Status updated')
+    ElMessage.success(t('common.success'))
   } catch (error: any) {
-    ElMessage.error('Update failed')
+    ElMessage.error(t('common.failed'))
   }
 }
 
 function getPriorityColor(priority: string) {
-  const option = priorityOptions.find(o => o.value === priority)
+  const option = priorityOptions.value.find((o: any) => o.value === priority)
   return option?.color || '#409eff'
 }
 
@@ -158,24 +160,24 @@ function isOverdue(task: Task): boolean {
 <template>
   <div class="todo-page">
     <div class="todo-header">
-      <h1 class="page-title">Tasks</h1>
+      <h1 class="page-title">{{ t('task.title') }}</h1>
       <div class="todo-actions">
         <el-input
           v-model="searchKeyword"
-          placeholder="Search tasks..."
+          :placeholder="t('common.search')"
           prefix-icon="Search"
           style="width: 200px"
           clearable
         />
-        <el-select v-model="filterStatus" placeholder="Filter by status" style="width: 150px" clearable>
-          <el-option label="All" value="" />
-          <el-option label="Pending" value="PENDING" />
-          <el-option label="In Progress" value="IN_PROGRESS" />
-          <el-option label="Completed" value="COMPLETED" />
+        <el-select v-model="filterStatus" :placeholder="t('common.filter')" style="width: 150px" clearable>
+          <el-option :label="t('common.filter')" value="" />
+          <el-option :label="t('task.statuses.pending')" value="PENDING" />
+          <el-option :label="t('task.statuses.inProgress')" value="IN_PROGRESS" />
+          <el-option :label="t('task.statuses.completed')" value="COMPLETED" />
         </el-select>
         <el-button type="primary" @click="openDialog()">
           <el-icon><Plus /></el-icon>
-          New Task
+          {{ t('task.newTask') }}
         </el-button>
       </div>
     </div>
@@ -226,24 +228,24 @@ function isOverdue(task: Task): boolean {
         </div>
       </el-card>
 
-      <el-empty v-if="filteredTasks.length === 0" description="No tasks found" />
+      <el-empty v-if="filteredTasks.length === 0" :description="t('common.noData')" />
     </div>
 
     <el-dialog
       v-model="dialogVisible"
-      :title="isEdit ? 'Edit Task' : 'New Task'"
+      :title="isEdit ? t('task.editTask') : t('task.newTask')"
       width="500px"
     >
       <el-form :model="form" label-width="100px">
-        <el-form-item label="Title" required>
-          <el-input v-model="form.title" placeholder="Task title" />
+        <el-form-item :label="t('task.taskTitle')" required>
+          <el-input v-model="form.title" :placeholder="t('task.taskTitle')" />
         </el-form-item>
 
-        <el-form-item label="Description">
+        <el-form-item :label="t('task.description')">
           <el-input v-model="form.description" type="textarea" :rows="3" />
         </el-form-item>
 
-        <el-form-item label="Priority">
+        <el-form-item :label="t('task.priority')">
           <el-select v-model="form.priority" style="width: 100%">
             <el-option
               v-for="option in priorityOptions"
@@ -254,7 +256,7 @@ function isOverdue(task: Task): boolean {
           </el-select>
         </el-form-item>
 
-        <el-form-item label="Status">
+        <el-form-item :label="t('task.status')">
           <el-select v-model="form.status" style="width: 100%">
             <el-option
               v-for="option in statusOptions"
@@ -265,19 +267,19 @@ function isOverdue(task: Task): boolean {
           </el-select>
         </el-form-item>
 
-        <el-form-item label="Due Date">
+        <el-form-item :label="t('task.dueDate')">
           <el-date-picker
             v-model="form.dueDate"
             type="datetime"
-            placeholder="Select due date"
+            :placeholder="t('task.dueDate')"
             style="width: 100%"
           />
         </el-form-item>
       </el-form>
 
       <template #footer>
-        <el-button @click="dialogVisible = false">Cancel</el-button>
-        <el-button type="primary" @click="handleSubmit">{{ isEdit ? 'Update' : 'Create' }}</el-button>
+        <el-button @click="dialogVisible = false">{{ t('common.cancel') }}</el-button>
+        <el-button type="primary" @click="handleSubmit">{{ isEdit ? t('common.edit') : t('common.create') }}</el-button>
       </template>
     </el-dialog>
   </div>

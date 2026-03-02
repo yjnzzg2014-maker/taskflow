@@ -2,9 +2,11 @@
 import { ref, onMounted, computed } from 'vue'
 import dayjs from 'dayjs'
 import { ElMessage } from 'element-plus'
+import { useI18n } from 'vue-i18n'
 import { useEventStore } from '@/stores/event'
 import type { Event } from '@/types'
 
+const { t } = useI18n()
 const eventStore = useEventStore()
 
 const currentDate = ref(dayjs())
@@ -77,7 +79,15 @@ const calendarDays = computed(() => {
   return days
 })
 
-const weekDays = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat']
+const weekDays = computed(() => [
+  t('calendar.weekdays.sun'),
+  t('calendar.weekdays.mon'),
+  t('calendar.weekdays.tue'),
+  t('calendar.weekdays.wed'),
+  t('calendar.weekdays.thu'),
+  t('calendar.weekdays.fri'),
+  t('calendar.weekdays.sat')
+])
 
 onMounted(async () => {
   await fetchEvents()
@@ -151,15 +161,15 @@ async function handleSubmit() {
 
     if (isEdit.value && currentEvent.value.id) {
       await eventStore.updateEvent(currentEvent.value.id, data)
-      ElMessage.success('Event updated successfully')
+      ElMessage.success(t('common.success'))
     } else {
       await eventStore.createEvent(data)
-      ElMessage.success('Event created successfully')
+      ElMessage.success(t('common.success'))
     }
     dialogVisible.value = false
     await fetchEvents()
   } catch (error: any) {
-    ElMessage.error(error.response?.data?.message || 'Operation failed')
+    ElMessage.error(error.response?.data?.message || t('common.failed'))
   }
 }
 
@@ -168,16 +178,16 @@ async function handleDelete() {
 
   try {
     await eventStore.deleteEvent(currentEvent.value.id)
-    ElMessage.success('Event deleted successfully')
+    ElMessage.success(t('common.success'))
     dialogVisible.value = false
     await fetchEvents()
   } catch (error: any) {
-    ElMessage.error(error.response?.data?.message || 'Delete failed')
+    ElMessage.error(error.response?.data?.message || t('common.failed'))
   }
 }
 
 function formatEventTime(event: Event) {
-  if (event.isAllDay) return 'All day'
+  if (event.isAllDay) return t('calendar.allDay')
   return dayjs(event.startTime).format('HH:mm')
 }
 </script>
@@ -185,17 +195,17 @@ function formatEventTime(event: Event) {
 <template>
   <div class="calendar-page">
     <div class="calendar-header">
-      <h1 class="page-title">Calendar</h1>
+      <h1 class="page-title">{{ t('calendar.title') }}</h1>
       <div class="calendar-actions">
         <el-button-group>
           <el-button @click="prevMonth"><el-icon><ArrowLeft /></el-icon></el-button>
-          <el-button @click="goToday">Today</el-button>
+          <el-button @click="goToday">{{ t('calendar.today') }}</el-button>
           <el-button @click="nextMonth"><el-icon><ArrowRight /></el-icon></el-button>
         </el-button-group>
         <span class="current-month">{{ currentDate.format('MMMM YYYY') }}</span>
         <el-button type="primary" @click="openDialog()">
           <el-icon><Plus /></el-icon>
-          New Event
+          {{ t('calendar.newEvent') }}
         </el-button>
       </div>
     </div>
@@ -225,7 +235,7 @@ function formatEventTime(event: Event) {
               <span class="event-title">{{ event.title }}</span>
             </div>
             <div v-if="day.events.length > 3" class="more-events">
-              +{{ day.events.length - 3 }} more
+              +{{ day.events.length - 3 }}
             </div>
           </div>
         </div>
@@ -234,59 +244,59 @@ function formatEventTime(event: Event) {
 
     <el-dialog
       v-model="dialogVisible"
-      :title="isEdit ? 'Edit Event' : 'New Event'"
+      :title="isEdit ? t('calendar.editEvent') : t('calendar.newEvent')"
       width="500px"
     >
       <el-form :model="form" label-width="100px">
-        <el-form-item label="Title" required>
-          <el-input v-model="form.title" placeholder="Event title" />
+        <el-form-item :label="t('calendar.eventTitle')" required>
+          <el-input v-model="form.title" :placeholder="t('calendar.eventTitle')" />
         </el-form-item>
 
-        <el-form-item label="Description">
+        <el-form-item :label="t('calendar.description')">
           <el-input v-model="form.description" type="textarea" :rows="3" />
         </el-form-item>
 
-        <el-form-item label="All Day">
+        <el-form-item :label="t('calendar.allDay')">
           <el-switch v-model="form.isAllDay" />
         </el-form-item>
 
-        <el-form-item label="Start Time" required>
+        <el-form-item :label="t('calendar.startTime')" required>
           <el-date-picker
             v-model="form.startTime"
             type="datetime"
-            placeholder="Select date and time"
+            :placeholder="t('calendar.startTime')"
             style="width: 100%"
           />
         </el-form-item>
 
-        <el-form-item label="End Time">
+        <el-form-item :label="t('calendar.endTime')">
           <el-date-picker
             v-model="form.endTime"
             type="datetime"
-            placeholder="Select date and time"
+            :placeholder="t('calendar.endTime')"
             style="width: 100%"
           />
         </el-form-item>
 
-        <el-form-item label="Location">
-          <el-input v-model="form.location" placeholder="Event location" />
+        <el-form-item :label="t('calendar.location')">
+          <el-input v-model="form.location" :placeholder="t('calendar.location')" />
         </el-form-item>
 
-        <el-form-item label="Repeat">
+        <el-form-item :label="t('calendar.repeat')">
           <el-select v-model="form.repeatType" style="width: 100%">
-            <el-option label="None" value="NONE" />
-            <el-option label="Daily" value="DAILY" />
-            <el-option label="Weekly" value="WEEKLY" />
-            <el-option label="Monthly" value="MONTHLY" />
-            <el-option label="Custom" value="CUSTOM" />
+            <el-option :label="t('calendar.repeatTypes.none')" value="NONE" />
+            <el-option :label="t('calendar.repeatTypes.daily')" value="DAILY" />
+            <el-option :label="t('calendar.repeatTypes.weekly')" value="WEEKLY" />
+            <el-option :label="t('calendar.repeatTypes.monthly')" value="MONTHLY" />
+            <el-option :label="t('calendar.repeatTypes.custom')" value="CUSTOM" />
           </el-select>
         </el-form-item>
 
-        <el-form-item label="Remind">
+        <el-form-item :label="t('calendar.remind')">
           <el-date-picker
             v-model="form.remindAt"
             type="datetime"
-            placeholder="Remind time"
+            :placeholder="t('calendar.remind')"
             style="width: 100%"
           />
         </el-form-item>
@@ -294,9 +304,9 @@ function formatEventTime(event: Event) {
 
       <template #footer>
         <div class="dialog-footer">
-          <el-button v-if="isEdit" type="danger" @click="handleDelete">Delete</el-button>
-          <el-button @click="dialogVisible = false">Cancel</el-button>
-          <el-button type="primary" @click="handleSubmit">{{ isEdit ? 'Update' : 'Create' }}</el-button>
+          <el-button v-if="isEdit" type="danger" @click="handleDelete">{{ t('common.delete') }}</el-button>
+          <el-button @click="dialogVisible = false">{{ t('common.cancel') }}</el-button>
+          <el-button type="primary" @click="handleSubmit">{{ isEdit ? t('common.edit') : t('common.create') }}</el-button>
         </div>
       </template>
     </el-dialog>

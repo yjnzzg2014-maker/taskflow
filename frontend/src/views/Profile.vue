@@ -1,8 +1,10 @@
 <script setup lang="ts">
 import { ref, onMounted } from 'vue'
 import { ElMessage } from 'element-plus'
+import { useI18n } from 'vue-i18n'
 import { useAuthStore } from '@/stores/auth'
 
+const { t } = useI18n()
 const authStore = useAuthStore()
 const loading = ref(false)
 
@@ -20,13 +22,13 @@ onMounted(() => {
 
 async function handleSubmit() {
   // Implement profile update logic
-  ElMessage.success('Profile updated successfully')
+  ElMessage.success(t('common.success'))
 }
 </script>
 
 <template>
   <div class="profile-page">
-    <h1 class="page-title">Profile</h1>
+    <h1 class="page-title">{{ t('profile.title') }}</h1>
 
     <el-row :gutter="20">
       <el-col :span="8">
@@ -41,11 +43,11 @@ async function handleSubmit() {
           <el-divider />
           <div class="profile-info">
             <div class="info-item">
-              <span class="label">Email:</span>
+              <span class="label">{{ t('profile.email') }}:</span>
               <span class="value">{{ authStore.user?.email }}</span>
             </div>
             <div class="info-item">
-              <span class="label">Member since:</span>
+              <span class="label">{{ t('profile.memberSince') }}:</span>
               <span class="value">{{ authStore.user?.createdAt }}</span>
             </div>
           </div>
@@ -55,25 +57,25 @@ async function handleSubmit() {
       <el-col :span="16">
         <el-card shadow="hover">
           <template #header>
-            <span>Edit Profile</span>
+            <span>{{ t('profile.editProfile') }}</span>
           </template>
 
           <el-form :model="form" label-width="100px">
-            <el-form-item label="Username">
+            <el-form-item :label="t('profile.username')">
               <el-input :value="authStore.user?.username" disabled />
             </el-form-item>
 
-            <el-form-item label="Email">
+            <el-form-item :label="t('profile.email')">
               <el-input v-model="form.email" />
             </el-form-item>
 
-            <el-form-item label="Avatar URL">
+            <el-form-item :label="t('profile.avatarUrl')">
               <el-input v-model="form.avatar" placeholder="https://..." />
             </el-form-item>
 
             <el-form-item>
               <el-button type="primary" :loading="loading" @click="handleSubmit">
-                Save Changes
+                {{ t('common.save') }}
               </el-button>
             </el-form-item>
           </el-form>
@@ -81,11 +83,11 @@ async function handleSubmit() {
 
         <el-card shadow="hover" style="margin-top: 20px">
           <template #header>
-            <span>Preferences</span>
+            <span>{{ t('profile.preferences') }}</span>
           </template>
 
           <div class="preference-item">
-            <span>Dark Mode</span>
+            <span>{{ t('profile.darkMode') }}</span>
             <el-switch
               :model-value="authStore.isDark"
               @change="authStore.toggleDarkMode"

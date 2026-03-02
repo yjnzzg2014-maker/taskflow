@@ -1,10 +1,12 @@
 <script setup lang="ts">
 import { reactive, ref } from 'vue'
 import { useRouter } from 'vue-router'
+import { useI18n } from 'vue-i18n'
 import { ElMessage } from 'element-plus'
 import { useAuthStore } from '@/stores/auth'
 import type { FormInstance, FormRules } from 'element-plus'
 
+const { t } = useI18n()
 const router = useRouter()
 const authStore = useAuthStore()
 const formRef = ref<FormInstance>()
@@ -17,10 +19,10 @@ const form = reactive({
 
 const rules: FormRules = {
   username: [
-    { required: true, message: 'Please input username', trigger: 'blur' }
+    { required: true, message: t('auth.username'), trigger: 'blur' }
   ],
   password: [
-    { required: true, message: 'Please input password', trigger: 'blur' }
+    { required: true, message: t('auth.password'), trigger: 'blur' }
   ]
 }
 
@@ -32,10 +34,10 @@ async function handleLogin() {
       loading.value = true
       try {
         await authStore.login(form)
-        ElMessage.success('Login successful')
+        ElMessage.success(t('auth.loginSuccess'))
         router.push('/')
       } catch (error: any) {
-        ElMessage.error(error.response?.data?.message || 'Login failed')
+        ElMessage.error(error.response?.data?.message || t('auth.loginFailed'))
       } finally {
         loading.value = false
       }
@@ -50,14 +52,14 @@ async function handleLogin() {
       <div class="login-header">
         <el-icon :size="48" color="#409eff"><Calendar /></el-icon>
         <h1>TaskFlow</h1>
-        <p>Schedule & TodoList Management</p>
+        <p>{{ t('common.language') }}</p>
       </div>
 
       <el-form ref="formRef" :model="form" :rules="rules" class="login-form">
         <el-form-item prop="username">
           <el-input
             v-model="form.username"
-            placeholder="Username"
+            :placeholder="t('auth.username')"
             prefix-icon="User"
             size="large"
           />
@@ -67,7 +69,7 @@ async function handleLogin() {
           <el-input
             v-model="form.password"
             type="password"
-            placeholder="Password"
+            :placeholder="t('auth.password')"
             prefix-icon="Lock"
             size="large"
             show-password
@@ -83,14 +85,14 @@ async function handleLogin() {
             class="login-btn"
             @click="handleLogin"
           >
-            Login
+            {{ t('auth.login') }}
           </el-button>
         </el-form-item>
       </el-form>
 
       <div class="login-footer">
-        <span>Don't have an account?</span>
-        <router-link to="/register">Register</router-link>
+        <span>{{ t('auth.noAccount') }}</span>
+        <router-link to="/register">{{ t('auth.register') }}</router-link>
       </div>
     </div>
   </div>

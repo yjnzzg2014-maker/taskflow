@@ -12,6 +12,11 @@ export const useAuthStore = defineStore('auth', () => {
   const isAuthenticated = computed(() => !!token.value)
   const isDark = ref(localStorage.getItem('theme') === 'dark')
 
+  // Apply dark mode on initial load
+  if (isDark.value) {
+    document.documentElement.classList.add('dark')
+  }
+
   async function login(credentials: LoginRequest) {
     isLoading.value = true
     try {
@@ -66,6 +71,12 @@ export const useAuthStore = defineStore('auth', () => {
     document.documentElement.classList.toggle('dark', isDark.value)
   }
 
+  function setDarkMode(value: boolean) {
+    isDark.value = value
+    localStorage.setItem('theme', value ? 'dark' : 'light')
+    document.documentElement.classList.toggle('dark', value)
+  }
+
   return {
     user,
     token,
@@ -77,6 +88,7 @@ export const useAuthStore = defineStore('auth', () => {
     register,
     fetchCurrentUser,
     logout,
-    toggleDarkMode
+    toggleDarkMode,
+    setDarkMode
   }
 })

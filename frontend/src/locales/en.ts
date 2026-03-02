@@ -1,0 +1,139 @@
+export default {
+  common: {
+    loading: 'Loading...',
+    save: 'Save',
+    cancel: 'Cancel',
+    confirm: 'Confirm',
+    delete: 'Delete',
+    edit: 'Edit',
+    create: 'Create',
+    search: 'Search',
+    filter: 'Filter',
+    export: 'Export',
+    noData: 'No Data',
+    success: 'Success',
+    failed: 'Failed',
+    language: 'Language'
+  },
+  auth: {
+    login: 'Login',
+    register: 'Register',
+    logout: 'Logout',
+    username: 'Username',
+    password: 'Password',
+    confirmPassword: 'Confirm Password',
+    email: 'Email',
+    loginSuccess: 'Login successful',
+    registerSuccess: 'Register successful',
+    loginFailed: 'Login failed',
+    registerFailed: 'Register failed',
+    noAccount: "Don't have an account?",
+    hasAccount: 'Already have an account?',
+    usernameLength: 'Username must be 3-50 characters',
+    emailValid: 'Please input valid email',
+    passwordLength: 'Password must be 6-100 characters',
+    passwordMismatch: 'Passwords do not match'
+  },
+  nav: {
+    dashboard: 'Dashboard',
+    calendar: 'Calendar',
+    tasks: 'Tasks',
+    profile: 'Profile'
+  },
+  dashboard: {
+    title: 'Dashboard',
+    totalTasks: 'Total Tasks',
+    completedTasks: 'Completed',
+    todayTasks: "Today's Tasks",
+    overdueTasks: 'Overdue',
+    taskStatus: 'Task Status',
+    taskTrend: 'Task Trend',
+    priorityDistribution: 'Priority Distribution',
+    quickStats: 'Quick Stats',
+    completionRate: 'Completion Rate',
+    totalEvents: 'Total Events',
+    todayEvents: "Today's Events",
+    pendingTasks: 'Pending Tasks'
+  },
+  calendar: {
+    title: 'Calendar',
+    today: 'Today',
+    newEvent: 'New Event',
+    editEvent: 'Edit Event',
+    eventTitle: 'Title',
+    description: 'Description',
+    allDay: 'All Day',
+    startTime: 'Start Time',
+    endTime: 'End Time',
+    location: 'Location',
+    repeat: 'Repeat',
+    remind: 'Remind',
+    weekdays: {
+      sun: 'Sun',
+      mon: 'Mon',
+      tue: 'Tue',
+      wed: 'Wed',
+      thu: 'Thu',
+      fri: 'Fri',
+      sat: 'Sat'
+    },
+    repeatTypes: {
+      none: 'None',
+      daily: 'Daily',
+      weekly: 'Weekly',
+      monthly: 'Monthly',
+      custom: 'Custom'
+    }
+  },
+  task: {
+    title: 'Tasks',
+    newTask: 'New Task',
+    editTask: 'Edit Task',
+    taskTitle: 'Title',
+    description: 'Description',
+    priority: 'Priority',
+    status: 'Status',
+    dueDate: 'Due Date',
+    category: 'Category',
+    tags: 'Tags',
+    subTasks: 'Sub Tasks',
+    priorities: {
+      low: 'Low',
+      medium: 'Medium',
+      high: 'High',
+      urgent: 'Urgent'
+    },
+    statuses: {
+      pending: 'Pending',
+      inProgress: 'In Progress',
+      completed: 'Completed'
+    }
+  },
+  profile: {
+    title: 'Profile',
+    editProfile: 'Edit Profile',
+    username: 'Username',
+    email: 'Email',
+    avatar: 'Avatar',
+    avatarUrl: 'Avatar URL',
+    memberSince: 'Member since',
+    preferences: 'Preferences',
+    darkMode: 'Dark Mode'
+  },
+  pomodoro: {
+    title: 'Pomodoro',
+    work: 'Work',
+    shortBreak: 'Short Break',
+    longBreak: 'Long Break',
+    workComplete: 'Work complete! Take a break~',
+    breakComplete: 'Break is over! Start working~',
+    sessions: 'Sessions',
+    settings: 'Timer Settings',
+    workDuration: 'Work Duration',
+    shortBreakDuration: 'Short Break',
+    longBreakDuration: 'Long Break',
+    autoStartBreaks: 'Auto Start Breaks',
+    autoStartWork: 'Auto Start Work',
+    sound: 'Sound'
+  }
+}

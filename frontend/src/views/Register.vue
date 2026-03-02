@@ -1,10 +1,12 @@
 <script setup lang="ts">
 import { reactive, ref } from 'vue'
 import { useRouter } from 'vue-router'
+import { useI18n } from 'vue-i18n'
 import { ElMessage } from 'element-plus'
 import { useAuthStore } from '@/stores/auth'
 import type { FormInstance, FormRules } from 'element-plus'
 
+const { t } = useI18n()
 const router = useRouter()
 const authStore = useAuthStore()
 const formRef = ref<FormInstance>()
@@ -19,7 +21,7 @@ const form = reactive({
 
 const validateConfirmPassword = (_rule: any, value: any, callback: any) => {
   if (value !== form.password) {
-    callback(new Error('Passwords do not match'))
+    callback(new Error(t('auth.passwordMismatch')))
   } else {
     callback()
   }
@@ -27,19 +29,19 @@ const validateConfirmPassword = (_rule: any, value: any, callback: any) => {
 
 const rules: FormRules = {
   username: [
-    { required: true, message: 'Please input username', trigger: 'blur' },
-    { min: 3, max: 50, message: 'Username must be 3-50 characters', trigger: 'blur' }
+    { required: true, message: t('auth.username'), trigger: 'blur' },
+    { min: 3, max: 50, message: t('auth.usernameLength'), trigger: 'blur' }
   ],
   email: [
-    { required: true, message: 'Please input email', trigger: 'blur' },
-    { type: 'email', message: 'Please input valid email', trigger: 'blur' }
+    { required: true, message: t('auth.email'), trigger: 'blur' },
+    { type: 'email', message: t('auth.emailValid'), trigger: 'blur' }
   ],
   password: [
-    { required: true, message: 'Please input password', trigger: 'blur' },
-    { min: 6, max: 100, message: 'Password must be 6-100 characters', trigger: 'blur' }
+    { required: true, message: t('auth.password'), trigger: 'blur' },
+    { min: 6, max: 100, message: t('auth.passwordLength'), trigger: 'blur' }
   ],
   confirmPassword: [
-    { required: true, message: 'Please confirm password', trigger: 'blur' },
+    { required: true, message: t('auth.confirmPassword'), trigger: 'blur' },
     { validator: validateConfirmPassword, trigger: 'blur' }
   ]
 }
@@ -56,10 +58,10 @@ async function handleRegister() {
           email: form.email,
           password: form.password
         })
-        ElMessage.success('Registration successful')
+        ElMessage.success(t('auth.registerSuccess'))
         router.push('/')
       } catch (error: any) {
-        ElMessage.error(error.response?.data?.message || 'Registration failed')
+        ElMessage.error(error.response?.data?.message || t('auth.registerFailed'))
       } finally {
         loading.value = false
       }
@@ -74,14 +76,14 @@ async function handleRegister() {
       <div class="register-header">
         <el-icon :size="48" color="#409eff"><Calendar /></el-icon>
         <h1>TaskFlow</h1>
-        <p>Create your account</p>
+        <p>{{ t('auth.register') }}</p>
       </div>
 
       <el-form ref="formRef" :model="form" :rules="rules" class="register-form">
         <el-form-item prop="username">
           <el-input
             v-model="form.username"
-            placeholder="Username"
+            :placeholder="t('auth.username')"
             prefix-icon="User"
             size="large"
           />
@@ -90,7 +92,7 @@ async function handleRegister() {
         <el-form-item prop="email">
           <el-input
             v-model="form.email"
-            placeholder="Email"
+            :placeholder="t('auth.email')"
             prefix-icon="Message"
             size="large"
           />
@@ -100,7 +102,7 @@ async function handleRegister() {
           <el-input
             v-model="form.password"
             type="password"
-            placeholder="Password"
+            :placeholder="t('auth.password')"
             prefix-icon="Lock"
             size="large"
             show-password
@@ -111,7 +113,7 @@ async function handleRegister() {
           <el-input
             v-model="form.confirmPassword"
             type="password"
-            placeholder="Confirm Password"
+            :placeholder="t('auth.confirmPassword')"
             prefix-icon="Lock"
             size="large"
             show-password
@@ -127,14 +129,14 @@ async function handleRegister() {
             class="register-btn"
             @click="handleRegister"
           >
-            Register
+            {{ t('auth.register') }}
           </el-button>
         </el-form-item>
       </el-form>
 
       <div class="register-footer">
-        <span>Already have an account?</span>
-        <router-link to="/login">Login</router-link>
+        <span>{{ t('auth.hasAccount') }}</span>
+        <router-link to="/login">{{ t('auth.login') }}</router-link>
       </div>
     </div>
   </div>
