@@ -19,7 +19,7 @@ const menuItems = computed(() => [
   { label: t('nav.calendar'), key: '/calendar', icon: () => h(CalendarOutline) },
   { label: t('nav.tasks'), key: '/tasks', icon: () => h(ListOutline) },
   { label: t('nav.profile'), key: '/profile', icon: () => h(PersonOutline) },
-  { label: '常用工具', key: '/tools', icon: () => h(ConstructOutline) }
+  { label: t('nav.tools'), key: '/tools', icon: () => h(ConstructOutline) }
 ])
 
 const activeMenu = computed(() => route.path)

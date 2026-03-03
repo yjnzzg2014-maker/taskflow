@@ -38,7 +38,8 @@ export default {
     dashboard: 'Dashboard',
     calendar: 'Calendar',
     tasks: 'Tasks',
-    profile: 'Profile'
+    profile: 'Profile',
+    tools: 'Tools'
   },
   dashboard: {
     title: 'Dashboard',
@@ -83,7 +84,16 @@ export default {
       weekly: 'Weekly',
       monthly: 'Monthly',
       custom: 'Custom'
+    },
+    views: {
+      day: 'Day',
+      week: 'Week',
+      month: 'Month'
     }
+  },
+  markdown: {
+    title: 'Markdown Tool',
+    preview: 'Preview & Print'
   },
   task: {
     title: 'Tasks',
@@ -132,9 +142,13 @@ export default {
     workDuration: 'Work Duration',
     shortBreakDuration: 'Short Break',
     longBreakDuration: 'Long Break',
+    longBreakInterval: 'Long Break Interval',
     autoStartBreaks: 'Auto Start Breaks',
     autoStartWork: 'Auto Start Work',
     sound: 'Sound',
+    soundType: 'Sound Type',
+    backgroundSound: 'Background Sound',
+    volume: 'Volume',
     selectTask: 'Select Task',
     today: 'Today',
     todayMinutes: 'Today Mins',

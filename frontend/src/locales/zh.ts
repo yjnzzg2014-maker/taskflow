@@ -38,7 +38,8 @@ export default {
     dashboard: '仪表盘',
     calendar: '日历',
     tasks: '任务',
-    profile: '个人中心'
+    profile: '个人中心',
+    tools: '常用工具'
   },
   dashboard: {
     title: '仪表盘',
@@ -83,7 +84,16 @@ export default {
       weekly: '每周',
       monthly: '每月',
       custom: '自定义'
+    },
+    views: {
+      day: '日',
+      week: '周',
+      month: '月'
     }
+  },
+  markdown: {
+    title: 'Markdown 工具',
+    preview: '预览打印'
   },
   task: {
     title: '任务',
@@ -132,9 +142,13 @@ export default {
     workDuration: '工作时长',
     shortBreakDuration: '短休息时长',
     longBreakDuration: '长休息时长',
+    longBreakInterval: '长休息间隔',
     autoStartBreaks: '自动开始休息',
     autoStartWork: '自动开始工作',
     sound: '提示音',
+    soundType: '提示音类型',
+    backgroundSound: '背景音',
+    volume: '音量',
     selectTask: '选择关联任务',
     today: '今日',
     todayMinutes: '今日分钟',

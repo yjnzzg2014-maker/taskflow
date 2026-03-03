@@ -1,23 +1,28 @@
 <script setup lang="ts">
 import { useI18n } from 'vue-i18n'
+import { computed } from 'vue'
 
-const { locale } = useI18n()
+const i18n = useI18n()
 
 const languages = [
-  { label: '中文', value: 'zh' },
-  { label: 'English', value: 'en' }
+  { label: '中文', key: 'zh' },
+  { label: 'English', key: 'en' }
 ]
 
-function changeLanguage(lang: string) {
-  locale.value = lang
-  localStorage.setItem('locale', lang)
+const currentLabel = computed(() => {
+  return languages.find(l => l.key === i18n.locale.value)?.label || '中文'
+})
+
+function changeLanguage(key: string) {
+  i18n.locale.value = key
+  localStorage.setItem('locale', key)
 }
 </script>
 
 <template>
   <n-dropdown :options="languages" @select="changeLanguage">
     <n-button quaternary>
-      <span>{{ languages.find(l => l.value === locale)?.label }}</span>
+      <span>{{ currentLabel }}</span>
     </n-button>
   </n-dropdown>
 </template>

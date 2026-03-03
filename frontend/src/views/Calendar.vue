@@ -14,6 +14,8 @@ const { t } = useI18n()
 const message = useMessage()
 const eventStore = useEventStore()
 
+type ViewMode = 'day' | 'week' | 'month'
+const viewMode = ref<ViewMode>('month')
 const currentDate = ref(dayjs())
 const dialogVisible = ref(false)
 const isEdit = ref(false)
@@ -90,6 +92,57 @@ const weekDays = computed(() => [
   t('calendar.weekdays.sat')
 ])
 
+// 周视图数据
+const weekDaysData = computed(() => {
+  const startOfWeek = currentDate.value.startOf('week')
+  const days = []
+  for (let i = 0; i < 7; i++) {
+    const date = startOfWeek.add(i, 'day')
+    const dayEvents = eventStore.events.filter(e => {
+      const eventDate = dayjs.utc(e.startTime).local()
+      return eventDate.isSame(date, 'day')
+    })
+    days.push({
+      date,
+      isToday: date.isSame(dayjs(), 'day'),
+      events: dayEvents
+    })
+  }
+  return days
+})
+
+// 日视图数据（24小时）
+const dayHours = computed(() => {
+  const hours = []
+  for (let i = 0; i < 24; i++) {
+    hours.push(i)
+  }
+  return hours
+})
+
+const dayEvents = computed(() => {
+  return eventStore.events.filter(e => {
+    const eventDate = dayjs.utc(e.startTime).local()
+    return eventDate.isSame(currentDate.value, 'day')
+  }).sort((a, b) => {
+    return dayjs(a.startTime).valueOf() - dayjs(b.startTime).valueOf()
+  })
+})
+
+function getEventsForHour(hour: number) {
+  return dayEvents.value.filter(event => {
+    const eventHour = dayjs.utc(event.startTime).local().hour()
+    return eventHour === hour
+  })
+}
+
+function getEventsForWeekDayHour(date: dayjs.Dayjs, hour: number) {
+  return eventStore.events.filter(event => {
+    const eventDate = dayjs.utc(event.startTime).local()
+    return eventDate.isSame(date, 'day') && eventDate.hour() === hour
+  })
+}
+
 const repeatOptions = computed(() => [
   { label: t('calendar.repeatTypes.none'), value: 'NONE' },
   { label: t('calendar.repeatTypes.daily'), value: 'DAILY' },
@@ -115,6 +168,26 @@ function prevMonth() {
 
 function nextMonth() {
   currentDate.value = currentDate.value.add(1, 'month')
+  fetchEvents()
+}
+
+function prevWeek() {
+  currentDate.value = currentDate.value.subtract(1, 'week')
+  fetchEvents()
+}
+
+function nextWeek() {
+  currentDate.value = currentDate.value.add(1, 'week')
+  fetchEvents()
+}
+
+function prevDay() {
+  currentDate.value = currentDate.value.subtract(1, 'day')
+  fetchEvents()
+}
+
+function nextDay() {
+  currentDate.value = currentDate.value.add(1, 'day')
   fetchEvents()
 }
 
@@ -213,19 +286,24 @@ function formatEventTime(event: Event) {
       <h1 class="page-title">{{ t('calendar.title') }}</h1>
       <div class="calendar-actions">
         <n-button-group>
-          <n-button @click="prevMonth">
+          <n-button @click="viewMode === 'month' ? prevMonth() : viewMode === 'week' ? prevWeek() : prevDay()">
             <template #icon>
               <n-icon :component="ArrowBack" />
             </template>
           </n-button>
           <n-button @click="goToday">{{ t('calendar.today') }}</n-button>
-          <n-button @click="nextMonth">
+          <n-button @click="viewMode === 'month' ? nextMonth() : viewMode === 'week' ? nextWeek() : nextDay()">
             <template #icon>
               <n-icon :component="ArrowForward" />
             </template>
           </n-button>
         </n-button-group>
-        <span class="current-month">{{ currentDate.format('MMMM YYYY') }}</span>
+        <span class="current-month">{{ viewMode === 'day' ? currentDate.format('MMMM D, YYYY') : viewMode === 'week' ? currentDate.format('MMMM YYYY') : currentDate.format('MMMM YYYY') }}</span>
+        <n-radio-group v-model:value="viewMode" name="viewMode" class="view-toggle">
+          <n-radio-button value="day">{{ t('calendar.views.day') }}</n-radio-button>
+          <n-radio-button value="week">{{ t('calendar.views.week') }}</n-radio-button>
+          <n-radio-button value="month">{{ t('calendar.views.month') }}</n-radio-button>
+        </n-radio-group>
         <n-button type="primary" @click="openDialog()">
           <template #icon>
             <n-icon :component="Add" />
@@ -235,7 +313,8 @@ function formatEventTime(event: Event) {
       </div>
     </div>
 
-    <n-card :bordered="false" class="calendar-card">
+    <!-- 月视图 -->
+    <n-card v-if="viewMode === 'month'" :bordered="false" class="calendar-card">
       <div class="calendar-grid">
         <div v-for="day in weekDays" :key="day" class="calendar-weekday">{{ day }}</div>
         <div
@@ -261,6 +340,60 @@ function formatEventTime(event: Event) {
             </div>
             <div v-if="day.events.length > 3" class="more-events">
               +{{ day.events.length - 3 }}
+            </div>
+          </div>
+        </div>
+      </div>
+    </n-card>
+
+    <!-- 周视图 -->
+    <n-card v-else-if="viewMode === 'week'" :bordered="false" class="calendar-card week-view">
+      <div class="week-header">
+        <div v-for="day in weekDaysData" :key="day.date.toString()" class="week-day-header" :class="{ 'is-today': day.isToday }">
+          <span class="week-day-name">{{ weekDays[day.date.day()] }}</span>
+          <span class="week-day-number">{{ day.date.date() }}</span>
+        </div>
+      </div>
+      <div class="week-grid">
+        <div v-for="hour in dayHours" :key="hour" class="week-hour-row">
+          <div class="hour-label">{{ hour.toString().padStart(2, '0') }}:00</div>
+          <div v-for="day in weekDaysData" :key="day.date.toString()" class="week-hour-cell" @click="openDialog(day.date.hour(hour))">
+            <div
+              v-for="event in getEventsForWeekDayHour(day.date, hour)"
+              :key="event.id"
+              class="week-event-item"
+              @click.stop="openEditDialog(event)"
+            >
+              <span class="event-time">{{ formatEventTime(event) }}</span>
+              <span class="event-title">{{ event.title }}</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </n-card>
+
+    <!-- 日视图 -->
+    <n-card v-else :bordered="false" class="calendar-card day-view">
+      <div class="day-header">
+        <div class="day-info">
+          <span class="day-weekday">{{ weekDays[currentDate.day()] }}</span>
+          <span class="day-number-large">{{ currentDate.date() }}</span>
+          <span class="day-month-year">{{ currentDate.format('MMMM YYYY') }}</span>
+        </div>
+      </div>
+      <div class="day-grid">
+        <div v-for="hour in dayHours" :key="hour" class="day-hour-row" @click="openDialog(currentDate.hour(hour))">
+          <div class="hour-label">{{ hour.toString().padStart(2, '0') }}:00</div>
+          <div class="day-hour-content">
+            <div
+              v-for="event in getEventsForHour(hour)"
+              :key="event.id"
+              class="day-event-item"
+              @click.stop="openEditDialog(event)"
+            >
+              <span class="event-time">{{ formatEventTime(event) }}</span>
+              <span class="event-title">{{ event.title }}</span>
+              <span v-if="event.location" class="event-location">{{ event.location }}</span>
             </div>
           </div>
         </div>
@@ -357,6 +490,14 @@ function formatEventTime(event: Event) {
     .current-month {
       font-size: 18px;
       font-weight: 600;
+      min-width: 180px;
+      text-align: center;
+    }
+
+    .view-toggle {
+      :deep(.n-radio-button) {
+        padding: 0 12px;
+      }
     }
   }
 }
@@ -449,5 +590,193 @@ function formatEventTime(event: Event) {
   display: flex;
   justify-content: flex-end;
   gap: 8px;
+}
+
+// 周视图
+.week-view {
+  .week-header {
+    display: grid;
+    grid-template-columns: 60px repeat(7, 1fr);
+    border-bottom: 1px solid var(--n-border-color);
+  }
+
+  .week-day-header {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 12px 8px;
+    border-right: 1px solid var(--n-border-color);
+
+    &.is-today {
+      background: rgba(24, 160, 88, 0.1);
+
+      .week-day-number {
+        background: #18a058;
+        color: #fff;
+        border-radius: 50%;
+        width: 32px;
+        height: 32px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+      }
+    }
+
+    .week-day-name {
+      font-size: 12px;
+      color: var(--n-text-color-3);
+    }
+
+    .week-day-number {
+      font-size: 18px;
+      font-weight: 600;
+    }
+  }
+
+  .week-grid {
+    max-height: 600px;
+    overflow-y: auto;
+  }
+
+  .week-hour-row {
+    display: grid;
+    grid-template-columns: 60px repeat(7, 1fr);
+    min-height: 48px;
+    border-bottom: 1px solid var(--n-border-color);
+
+    .hour-label {
+      padding: 4px 8px;
+      font-size: 12px;
+      color: var(--n-text-color-3);
+      border-right: 1px solid var(--n-border-color);
+    }
+
+    .week-hour-cell {
+      padding: 2px;
+      border-right: 1px solid var(--n-border-color);
+      cursor: pointer;
+      min-height: 48px;
+
+      &:hover {
+        background: var(--n-color-hover);
+      }
+
+      &:last-child {
+        border-right: none;
+      }
+    }
+  }
+
+  .week-event-item {
+    font-size: 11px;
+    padding: 2px 4px;
+    margin-bottom: 2px;
+    border-radius: 3px;
+    background: #18a058;
+    color: #fff;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    cursor: pointer;
+
+    .event-time {
+      margin-right: 4px;
+    }
+  }
+}
+
+// 日视图
+.day-view {
+  .day-header {
+    text-align: center;
+    padding: 16px;
+    border-bottom: 1px solid var(--n-border-color);
+
+    .day-info {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+
+      .day-weekday {
+        font-size: 14px;
+        color: var(--n-text-color-3);
+        text-transform: uppercase;
+      }
+
+      .day-number-large {
+        font-size: 48px;
+        font-weight: 700;
+        line-height: 1;
+        margin: 8px 0;
+      }
+
+      .day-month-year {
+        font-size: 16px;
+        color: var(--n-text-color-2);
+      }
+    }
+  }
+
+  .day-grid {
+    max-height: 700px;
+    overflow-y: auto;
+  }
+
+  .day-hour-row {
+    display: grid;
+    grid-template-columns: 70px 1fr;
+    min-height: 60px;
+    border-bottom: 1px solid var(--n-border-color);
+    cursor: pointer;
+
+    &:hover {
+      background: var(--n-color-hover);
+    }
+
+    .hour-label {
+      padding: 8px;
+      font-size: 13px;
+      color: var(--n-text-color-3);
+      border-right: 1px solid var(--n-border-color);
+      text-align: right;
+    }
+
+    .day-hour-content {
+      padding: 4px 8px;
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+  }
+
+  .day-event-item {
+    padding: 8px 12px;
+    border-radius: 6px;
+    background: #18a058;
+    color: #fff;
+    cursor: pointer;
+
+    &:hover {
+      opacity: 0.9;
+    }
+
+    .event-time {
+      font-size: 12px;
+      opacity: 0.9;
+      margin-right: 8px;
+    }
+
+    .event-title {
+      font-size: 14px;
+      font-weight: 500;
+    }
+
+    .event-location {
+      display: block;
+      font-size: 12px;
+      opacity: 0.8;
+      margin-top: 4px;
+    }
+  }
 }
 </style>
