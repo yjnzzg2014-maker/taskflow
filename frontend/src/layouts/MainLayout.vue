@@ -5,7 +5,7 @@ import { useI18n } from 'vue-i18n'
 import { useAuthStore } from '@/stores/auth'
 import LanguageSwitcher from '@/components/LanguageSwitcher.vue'
 import PomodoroTimer from '@/components/PomodoroTimer.vue'
-import { GridOutline, CalendarOutline, ListOutline, PersonOutline, Moon, Sunny } from '@vicons/ionicons5'
+import { GridOutline, CalendarOutline, ListOutline, PersonOutline, Moon, Sunny, ConstructOutline } from '@vicons/ionicons5'
 
 const { t } = useI18n()
 const router = useRouter()
@@ -18,7 +18,8 @@ const menuItems = computed(() => [
   { label: t('nav.dashboard'), key: '/', icon: () => h(GridOutline) },
   { label: t('nav.calendar'), key: '/calendar', icon: () => h(CalendarOutline) },
   { label: t('nav.tasks'), key: '/tasks', icon: () => h(ListOutline) },
-  { label: t('nav.profile'), key: '/profile', icon: () => h(PersonOutline) }
+  { label: t('nav.profile'), key: '/profile', icon: () => h(PersonOutline) },
+  { label: '常用工具', key: '/tools', icon: () => h(ConstructOutline) }
 ])
 
 const activeMenu = computed(() => route.path)

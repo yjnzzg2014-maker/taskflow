@@ -22,12 +22,12 @@ const currentEvent = ref<Partial<Event>>({})
 const form = ref<{
   title: string
   description: string
-  startTime: Date | null
-  endTime: Date | null
+  startTime: number | null
+  endTime: number | null
   location: string
   isAllDay: boolean
   repeatType: 'NONE' | 'DAILY' | 'WEEKLY' | 'MONTHLY' | 'CUSTOM'
-  remindAt: Date | null
+  remindAt: number | null
 }>({
   title: '',
   description: '',
@@ -130,7 +130,7 @@ function openDialog(date?: dayjs.Dayjs) {
   form.value = {
     title: '',
     description: '',
-    startTime: defaultDate.toDate(),
+    startTime: defaultDate.valueOf(),
     endTime: null,
     location: '',
     isAllDay: false,
@@ -146,12 +146,12 @@ function openEditDialog(event: Event) {
   form.value = {
     title: event.title,
     description: event.description || '',
-    startTime: event.startTime ? dayjs(event.startTime).toDate() : null,
-    endTime: event.endTime ? dayjs(event.endTime).toDate() : null,
+    startTime: event.startTime ? dayjs(event.startTime).valueOf() : null,
+    endTime: event.endTime ? dayjs(event.endTime).valueOf() : null,
     location: event.location || '',
     isAllDay: event.isAllDay,
     repeatType: event.repeatType,
-    remindAt: event.remindAt ? dayjs(event.remindAt).toDate() : null
+    remindAt: event.remindAt ? dayjs(event.remindAt).valueOf() : null
   }
   dialogVisible.value = true
 }

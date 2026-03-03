@@ -4,6 +4,7 @@ import { useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 import { useMessage } from 'naive-ui'
 import { useAuthStore } from '@/stores/auth'
+import { Calendar } from '@vicons/ionicons5'
 
 const { t } = useI18n()
 const router = useRouter()

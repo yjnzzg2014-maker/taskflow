@@ -40,6 +40,11 @@ const router = createRouter({
           path: 'profile',
           name: 'profile',
           component: () => import('@/views/Profile.vue')
+        },
+        {
+          path: 'tools',
+          name: 'tools',
+          component: () => import('@/views/MarkdownTool.vue')
         }
       ]
     }
