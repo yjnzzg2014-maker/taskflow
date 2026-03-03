@@ -69,11 +69,29 @@ public class Task {
     @Column(name = "updated_at")
     private LocalDateTime updatedAt;
 
+    // Repeat fields
+    @Enumerated(EnumType.STRING)
+    @Column(name = "repeat_type")
+    private RepeatType repeatType;
+
+    @Column(name = "repeat_interval")
+    private Integer repeatInterval;
+
+    @Column(name = "repeat_end_date")
+    private LocalDateTime repeatEndDate;
+
+    @Column(name = "original_task_id")
+    private Long originalTaskId;
+
     public enum Priority {
         LOW, MEDIUM, HIGH, URGENT
     }
 
     public enum TaskStatus {
         PENDING, IN_PROGRESS, COMPLETED
+    }
+
+    public enum RepeatType {
+        NONE, DAILY, WEEKLY, MONTHLY, YEARLY
     }
 }

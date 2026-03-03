@@ -46,4 +46,14 @@ public class StatsController {
     public ResponseEntity<StatsDTO.CategoryDistribution> getCategoryDistribution() {
         return ResponseEntity.ok(statsService.getCategoryDistribution());
     }
+
+    @GetMapping("/productivity")
+    public ResponseEntity<Map<String, Object>> getProductivityReport(@RequestParam(defaultValue = "30") int days) {
+        return ResponseEntity.ok(statsService.getProductivityReport(days));
+    }
+
+    @GetMapping("/monthly")
+    public ResponseEntity<Map<String, Object>> getMonthlyStats(@RequestParam int year, @RequestParam int month) {
+        return ResponseEntity.ok(statsService.getMonthlyStats(year, month));
+    }
 }

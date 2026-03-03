@@ -1,6 +1,7 @@
 package com.taskflow.service;
 
 import com.taskflow.dto.StatsDTO;
+import com.taskflow.entity.Event;
 import com.taskflow.entity.Task;
 import com.taskflow.entity.User;
 import com.taskflow.repository.*;
@@ -135,5 +136,105 @@ public class StatsService {
         return StatsDTO.PriorityDistribution.builder()
                 .data(data)
                 .build();
+    }
+
+    public Map<String, Object> getProductivityReport(int days) {
+        User user = getCurrentUser();
+        LocalDateTime startDate = LocalDateTime.now().minusDays(days);
+
+        List<Task> tasks = taskRepository.findByUserIdOrderByCreatedAtDesc(user.getId());
+        List<Task> recentTasks = tasks.stream()
+                .filter(t -> t.getCreatedAt().isAfter(startDate))
+                .collect(Collectors.toList());
+
+        // Calculate productivity metrics
+        long totalTasks = recentTasks.size();
+        long completedTasks = recentTasks.stream()
+                .filter(t -> t.getStatus() == Task.TaskStatus.COMPLETED)
+                .count();
+        long overdueTasks = recentTasks.stream()
+                .filter(t -> t.getStatus() != Task.TaskStatus.COMPLETED)
+                .filter(t -> t.getDueDate() != null && t.getDueDate().isBefore(LocalDateTime.now()))
+                .count();
+
+        double completionRate = totalTasks > 0 ? (double) completedTasks / totalTasks * 100 : 0;
+
+        // Average completion time (for completed tasks)
+        List<Task> completedWithTime = recentTasks.stream()
+                .filter(t -> t.getStatus() == Task.TaskStatus.COMPLETED)
+                .filter(t -> t.getDueDate() != null)
+                .collect(Collectors.toList());
+
+        Map<String, Object> response = new HashMap<>();
+        response.put("totalTasks", totalTasks);
+        response.put("completedTasks", completedTasks);
+        response.put("overdueTasks", overdueTasks);
+        response.put("completionRate", completionRate);
+        response.put("period", days);
+
+        // Daily average
+        response.put("dailyAverage", totalTasks > 0 ? (double) totalTasks / days : 0);
+
+        // Streak calculation
+        int streak = calculateStreak(user.getId());
+        response.put("currentStreak", streak);
+
+        return response;
+    }
+
+    public Map<String, Object> getMonthlyStats(int year, int month) {
+        User user = getCurrentUser();
+        LocalDate startOfMonth = LocalDate.of(year, month, 1);
+        LocalDate endOfMonth = startOfMonth.withDayOfMonth(startOfMonth.lengthOfMonth());
+        LocalDateTime startDateTime = startOfMonth.atStartOfDay();
+        LocalDateTime endDateTime = endOfMonth.atTime(23, 59, 59);
+
+        List<Task> tasks = taskRepository.findByUserIdOrderByCreatedAtDesc(user.getId());
+        List<Task> monthlyTasks = tasks.stream()
+                .filter(t -> t.getCreatedAt().isAfter(startDateTime) && t.getCreatedAt().isBefore(endDateTime))
+                .collect(Collectors.toList());
+
+        long totalTasks = monthlyTasks.size();
+        long completedTasks = monthlyTasks.stream()
+                .filter(t -> t.getStatus() == Task.TaskStatus.COMPLETED)
+                .count();
+
+        List<Event> events = eventRepository.findByUserIdOrderByStartTimeDesc(user.getId());
+        long totalEvents = events.stream()
+                .filter(e -> e.getStartTime().isAfter(startDateTime) && e.getStartTime().isBefore(endDateTime))
+                .count();
+
+        Map<String, Object> response = new HashMap<>();
+        response.put("year", year);
+        response.put("month", month);
+        response.put("totalTasks", totalTasks);
+        response.put("completedTasks", completedTasks);
+        response.put("totalEvents", totalEvents);
+        response.put("completionRate", totalTasks > 0 ? (double) completedTasks / totalTasks * 100 : 0);
+
+        return response;
+    }
+
+    private int calculateStreak(Long userId) {
+        LocalDate today = LocalDate.now();
+        int streak = 0;
+
+        for (int i = 0; i < 365; i++) {
+            LocalDate date = today.minusDays(i);
+            LocalDateTime dayStart = date.atStartOfDay();
+            LocalDateTime dayEnd = date.atTime(23, 59, 59);
+
+            List<Task> tasks = taskRepository.findByUserIdAndDueDateBetween(userId, dayStart, dayEnd);
+            boolean hasCompletedTask = tasks.stream()
+                    .anyMatch(t -> t.getStatus() == Task.TaskStatus.COMPLETED);
+
+            if (hasCompletedTask) {
+                streak++;
+            } else if (i > 0) {
+                break;
+            }
+        }
+
+        return streak;
     }
 }
