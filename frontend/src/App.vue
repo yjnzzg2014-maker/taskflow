@@ -1,17 +1,41 @@
 <script setup lang="ts">
+import { computed, onMounted } from 'vue'
 import { RouterView } from 'vue-router'
-import { NMessageProvider, NDialogProvider, NNotificationProvider } from 'naive-ui'
+import { NMessageProvider, NDialogProvider, NNotificationProvider, NConfigProvider, darkTheme } from 'naive-ui'
+import { useAuthStore } from '@/stores/auth'
+
+const authStore = useAuthStore()
+
+const theme = computed(() => authStore.isDark ? darkTheme : null)
+
+onMounted(() => {
+  // Apply initial dark mode
+  if (authStore.isDark) {
+    document.documentElement.classList.add('dark')
+  }
+})
 </script>
 
 <template>
-  <NMessageProvider>
-    <NDialogProvider>
-      <NNotificationProvider>
-        <RouterView />
-      </NNotificationProvider>
-    </NDialogProvider>
-  </NMessageProvider>
+  <NConfigProvider :theme="theme">
+    <NMessageProvider>
+      <NDialogProvider>
+        <NNotificationProvider>
+          <RouterView />
+        </NNotificationProvider>
+      </NDialogProvider>
+    </NMessageProvider>
+  </NConfigProvider>
 </template>
 
-<style scoped>
+<style>
+/* Global dark mode styles */
+html.dark {
+  color-scheme: dark;
+}
+
+html.dark body {
+  background-color: #18181c;
+  color: #fff;
+}
 </style>
