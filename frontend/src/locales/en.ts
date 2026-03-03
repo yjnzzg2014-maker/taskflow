@@ -15,6 +15,23 @@ export default {
     failed: 'Failed',
     language: 'Language'
   },
+  search: {
+    placeholder: 'Search tasks and events...',
+    noResults: 'No results found',
+    tasks: 'Tasks',
+    events: 'Events',
+    hint: 'Please enter at least 2 characters',
+    tip: 'Press Ctrl+K to open search'
+  },
+  export: {
+    title: 'Export Data',
+    description: 'Export your data as iCal format to import into other calendar apps',
+    calendar: 'Export Events',
+    tasks: 'Export Tasks',
+    all: 'Export All',
+    success: 'Export successful',
+    failed: 'Export failed'
+  },
   auth: {
     login: 'Login',
     register: 'Register',
@@ -93,7 +110,18 @@ export default {
   },
   markdown: {
     title: 'Markdown Tool',
-    preview: 'Preview & Print'
+    preview: 'Preview & Print',
+    desc: 'Markdown text preview and print'
+  },
+  shortcuts: {
+    title: 'Keyboard Shortcuts',
+    desc: 'View keyboard shortcuts',
+    search: 'Open search',
+    newTask: 'New task',
+    togglePomodoro: 'Toggle Pomodoro',
+    goDashboard: 'Go to Dashboard',
+    goCalendar: 'Go to Calendar',
+    goTasks: 'Go to Tasks'
   },
   task: {
     title: 'Tasks',
@@ -112,6 +140,12 @@ export default {
       medium: 'Medium',
       high: 'High',
       urgent: 'Urgent'
+    },
+    sort: {
+      priority: 'Priority',
+      dueDate: 'Due Date',
+      createdAt: 'Created',
+      title: 'Title'
     },
     statuses: {
       pending: 'Pending',

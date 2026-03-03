@@ -3,6 +3,7 @@ import { computed, onMounted } from 'vue'
 import { RouterView } from 'vue-router'
 import { NMessageProvider, NDialogProvider, NNotificationProvider, NConfigProvider, darkTheme } from 'naive-ui'
 import { useAuthStore } from '@/stores/auth'
+import NotificationService from '@/components/NotificationService.vue'
 
 const authStore = useAuthStore()
 
@@ -21,6 +22,7 @@ onMounted(() => {
     <NMessageProvider>
       <NDialogProvider>
         <NNotificationProvider>
+          <NotificationService />
           <RouterView />
         </NNotificationProvider>
       </NDialogProvider>

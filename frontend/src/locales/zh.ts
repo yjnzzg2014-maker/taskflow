@@ -15,6 +15,23 @@ export default {
     failed: '操作失败',
     language: '语言'
   },
+  search: {
+    placeholder: '搜索任务和日程...',
+    noResults: '未找到结果',
+    tasks: '任务',
+    events: '日程',
+    hint: '请输入至少2个字符',
+    tip: '按 Ctrl+K 快速打开搜索'
+  },
+  export: {
+    title: '导出数据',
+    description: '将您的数据导出为 iCal 格式，可导入到其他日历应用',
+    calendar: '导出日程',
+    tasks: '导出任务',
+    all: '导出全部',
+    success: '导出成功',
+    failed: '导出失败'
+  },
   auth: {
     login: '登录',
     register: '注册',
@@ -93,7 +110,18 @@ export default {
   },
   markdown: {
     title: 'Markdown 工具',
-    preview: '预览打印'
+    preview: '预览打印',
+    desc: 'Markdown 文本预览和打印'
+  },
+  shortcuts: {
+    title: '快捷键',
+    desc: '键盘快捷键一览',
+    search: '打开搜索',
+    newTask: '新建任务',
+    togglePomodoro: '切换番茄钟',
+    goDashboard: '前往仪表盘',
+    goCalendar: '前往日历',
+    goTasks: '前往任务'
   },
   task: {
     title: '任务',
@@ -112,6 +140,12 @@ export default {
       medium: '中',
       high: '高',
       urgent: '紧急'
+    },
+    sort: {
+      priority: '优先级',
+      dueDate: '截止日期',
+      createdAt: '创建时间',
+      title: '标题'
     },
     statuses: {
       pending: '未开始',

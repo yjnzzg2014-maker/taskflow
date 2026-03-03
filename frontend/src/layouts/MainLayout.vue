@@ -5,6 +5,7 @@ import { useI18n } from 'vue-i18n'
 import { useAuthStore } from '@/stores/auth'
 import LanguageSwitcher from '@/components/LanguageSwitcher.vue'
 import PomodoroTimer from '@/components/PomodoroTimer.vue'
+import GlobalSearch from '@/components/GlobalSearch.vue'
 import { GridOutline, CalendarOutline, ListOutline, PersonOutline, Moon, Sunny, ConstructOutline } from '@vicons/ionicons5'
 
 const { t } = useI18n()
@@ -43,13 +44,72 @@ function navigateTo(path: string) {
   showMobileMenu.value = false
 }
 
+function handleKeydown(event: KeyboardEvent) {
+  // Don't trigger shortcuts when typing in input fields
+  const target = event.target as HTMLElement
+  if (target.tagName === 'INPUT' || target.tagName === 'TEXTAREA') {
+    return
+  }
+
+  // N - New task
+  if (event.key === 'n' || event.key === 'N') {
+    if (route.path === '/tasks') {
+      // Trigger new task modal
+      const event = new CustomEvent('open-new-task')
+      window.dispatchEvent(event)
+    }
+  }
+
+  // T - Toggle pomodoro
+  if (event.key === 't' || event.key === 'T') {
+    const event = new CustomEvent('toggle-pomodoro')
+    window.dispatchEvent(event)
+  }
+
+  // G then D - Go to Dashboard
+  if (event.key === 'g') {
+    document.addEventListener('keydown', function goToDashboard(e) {
+      if (e.key === 'd' || e.key === 'D') {
+        router.push('/')
+        document.removeEventListener('keydown', goToDashboard)
+      }
+    })
+  }
+
+  // G then C - Go to Calendar
+  if (event.key === 'g') {
+    setTimeout(() => {
+      document.addEventListener('keydown', function goToCalendar(e) {
+        if (e.key === 'c' || e.key === 'C') {
+          router.push('/calendar')
+          document.removeEventListener('keydown', goToCalendar)
+        }
+      })
+    }, 0)
+  }
+
+  // G then T - Go to Tasks
+  if (event.key === 'g') {
+    setTimeout(() => {
+      document.addEventListener('keydown', function goToTasks(e) {
+        if (e.key === 't' || e.key === 'T') {
+          router.push('/tasks')
+          document.removeEventListener('keydown', goToTasks)
+        }
+      })
+    }, 0)
+  }
+}
+
 onMounted(() => {
   checkMobile()
   window.addEventListener('resize', checkMobile)
+  document.addEventListener('keydown', handleKeydown)
 })
 
 onUnmounted(() => {
   window.removeEventListener('resize', checkMobile)
+  document.removeEventListener('keydown', handleKeydown)
 })
 </script>
 
@@ -126,7 +186,8 @@ onUnmounted(() => {
         </div>
         <div class="mobile-header-right">
           <PomodoroTimer />
-          <LanguageSwitcher />
+            <GlobalSearch />
+            <LanguageSwitcher />
           <n-switch
             :value="authStore.isDark"
             @update:value="authStore.setDarkMode"

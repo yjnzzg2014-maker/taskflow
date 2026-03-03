@@ -17,6 +17,14 @@ const isEdit = ref(false)
 const currentTask = ref<Partial<Task>>({})
 const filterStatus = ref<string>('')
 const searchKeyword = ref('')
+const sortBy = ref<string>('priority')
+
+const sortOptions = [
+  { label: 'task.sort.priority', value: 'priority' },
+  { label: 'task.sort.dueDate', value: 'dueDate' },
+  { label: 'task.sort.createdAt', value: 'createdAt' },
+  { label: 'task.sort.title', value: 'title' }
+]
 
 const form = ref<{
   title: string
@@ -48,7 +56,7 @@ const statusOptions = computed(() => [
 ])
 
 const filteredTasks = computed(() => {
-  let tasks = taskStore.tasks
+  let tasks = [...taskStore.tasks]
 
   if (filterStatus.value) {
     tasks = tasks.filter(t => t.status === filterStatus.value)
@@ -61,6 +69,31 @@ const filteredTasks = computed(() => {
       t.description?.toLowerCase().includes(keyword)
     )
   }
+
+  // Sort tasks
+  const priorityOrder = { 'URGENT': 0, 'HIGH': 1, 'MEDIUM': 2, 'LOW': 3 }
+
+  tasks.sort((a, b) => {
+    switch (sortBy.value) {
+      case 'priority':
+        // Completed tasks go to bottom
+        if (a.status === 'COMPLETED' && b.status !== 'COMPLETED') return 1
+        if (b.status === 'COMPLETED' && a.status !== 'COMPLETED') return -1
+        return (priorityOrder[a.priority] || 3) - (priorityOrder[b.priority] || 3)
+      case 'dueDate':
+        if (a.status === 'COMPLETED' && b.status !== 'COMPLETED') return 1
+        if (b.status === 'COMPLETED' && a.status !== 'COMPLETED') return -1
+        if (!a.dueDate) return 1
+        if (!b.dueDate) return -1
+        return new Date(a.dueDate).getTime() - new Date(b.dueDate).getTime()
+      case 'createdAt':
+        return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+      case 'title':
+        return a.title.localeCompare(b.title)
+      default:
+        return 0
+    }
+  })
 
   return tasks
 })
@@ -167,8 +200,13 @@ function isOverdue(task: Task): boolean {
         <n-input
           v-model:value="searchKeyword"
           :placeholder="t('common.search')"
-          style="width: 200px"
+          style="width: 150px"
           clearable
+        />
+        <n-select
+          v-model:value="sortBy"
+          :options="sortOptions"
+          style="width: 150px"
         />
         <n-select
           v-model:value="filterStatus"
