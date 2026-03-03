@@ -1,5 +1,5 @@
 import { defineStore } from 'pinia'
-import { ref, computed } from 'vue'
+import { ref, computed, watch } from 'vue'
 import type { User, LoginRequest, RegisterRequest } from '@/types'
 import { authApi } from '@/api'
 
@@ -12,10 +12,14 @@ export const useAuthStore = defineStore('auth', () => {
   const isAuthenticated = computed(() => !!token.value)
   const isDark = ref(localStorage.getItem('theme') === 'dark')
 
-  // Apply dark mode on initial load
-  if (isDark.value) {
-    document.documentElement.classList.add('dark')
-  }
+  // Watch for dark mode changes
+  watch(isDark, (newValue) => {
+    if (newValue) {
+      document.documentElement.classList.add('dark')
+    } else {
+      document.documentElement.classList.remove('dark')
+    }
+  }, { immediate: true })
 
   async function login(credentials: LoginRequest) {
     isLoading.value = true

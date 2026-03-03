@@ -1,42 +1,13 @@
 <script setup lang="ts">
-import { ref, watch, onMounted } from 'vue'
+import { computed } from 'vue'
 import { RouterView } from 'vue-router'
-import { NMessageProvider, NDialogProvider, NNotificationProvider, NConfigProvider, darkTheme, lightTheme } from 'naive-ui'
+import { NMessageProvider, NDialogProvider, NNotificationProvider, NConfigProvider, darkTheme } from 'naive-ui'
 import { useAuthStore } from '@/stores/auth'
 import NotificationService from '@/components/NotificationService.vue'
 
 const authStore = useAuthStore()
 
-const theme = ref(lightTheme)
-
-// Initialize theme
-function initTheme() {
-  if (authStore.isDark) {
-    theme.value = darkTheme
-    document.documentElement.classList.add('dark')
-  } else {
-    theme.value = lightTheme
-    document.documentElement.classList.remove('dark')
-  }
-}
-
-// Watch for dark mode changes
-watch(
-  () => authStore.isDark,
-  (newValue) => {
-    if (newValue) {
-      theme.value = darkTheme
-      document.documentElement.classList.add('dark')
-    } else {
-      theme.value = lightTheme
-      document.documentElement.classList.remove('dark')
-    }
-  }
-)
-
-onMounted(() => {
-  initTheme()
-})
+const theme = computed(() => authStore.isDark ? darkTheme : null)
 </script>
 
 <template>
