@@ -142,4 +142,57 @@ async function handleSubmit() {
   align-items: center;
   padding: 12px 0;
 }
+
+// 移动端适配
+@media (max-width: 768px) {
+  .profile-page {
+    .page-title {
+      font-size: 18px;
+      margin-bottom: 16px;
+    }
+
+    :deep(.n-grid) {
+      display: flex !important;
+      flex-direction: column;
+      gap: 16px !important;
+    }
+
+    .profile-avatar {
+      padding: 16px 0;
+
+      :deep(.n-avatar) {
+        width: 80px !important;
+        height: 80px !important;
+      }
+
+      h3 {
+        font-size: 18px;
+        margin: 12px 0 8px;
+      }
+    }
+
+    .profile-info {
+      .info-item {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 4px;
+
+        .label {
+          font-size: 12px;
+        }
+
+        .value {
+          font-size: 14px;
+        }
+      }
+    }
+
+    .preference-item {
+      flex-direction: column;
+      align-items: flex-start;
+      gap: 8px;
+      padding: 16px 0;
+    }
+  }
+}
 </style>

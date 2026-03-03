@@ -307,4 +307,112 @@ const formatNumber = (num: number) => {
     }
   }
 }
+
+// 移动端适配
+@media (max-width: 768px) {
+  .dashboard {
+    .page-title {
+      font-size: 18px;
+      text-align: center;
+      margin-bottom: 16px;
+    }
+
+    :deep(.n-grid) {
+      display: flex !important;
+      flex-direction: column;
+      gap: 12px !important;
+    }
+
+    :deep(.n-gi) {
+      grid-column: span 1 !important;
+    }
+
+    .stats-row {
+      :deep(.n-grid) {
+        display: grid !important;
+        grid-template-columns: repeat(2, 1fr) !important;
+      }
+    }
+
+    .stat-card {
+      padding: 16px 12px;
+      flex-direction: row;
+      justify-content: flex-start;
+      gap: 12px;
+      text-align: left;
+
+      .stat-icon {
+        width: 48px;
+        height: 48px;
+        margin-bottom: 0;
+        flex-shrink: 0;
+
+        :deep(.n-icon) {
+          font-size: 24px !important;
+        }
+      }
+
+      .stat-content {
+        .stat-value {
+          font-size: 22px;
+        }
+
+        .stat-label {
+          font-size: 12px;
+        }
+      }
+    }
+
+    .chart-row {
+      :deep(.n-gi) {
+        grid-column: span 24 !important;
+      }
+    }
+
+    :deep(.n-card) {
+      margin-bottom: 12px;
+
+      :deep(.n-card__content) {
+        padding: 12px;
+      }
+
+      :deep(.n-card-header) {
+        padding: 12px;
+      }
+    }
+
+    .quick-stats {
+      .quick-stat-item {
+        padding: 10px 0;
+
+        .value {
+          font-size: 16px;
+        }
+
+        :deep(.n-progress) {
+          width: 100% !important;
+        }
+      }
+    }
+  }
+}
+
+@media (max-width: 480px) {
+  .dashboard {
+    .stats-row {
+      :deep(.n-grid) {
+        grid-template-columns: 1fr !important;
+      }
+    }
+
+    .stat-card {
+      flex-direction: column;
+      text-align: center;
+
+      .stat-icon {
+        margin-bottom: 8px;
+      }
+    }
+  }
+}
 </style>

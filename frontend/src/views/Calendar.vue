@@ -779,4 +779,164 @@ function formatEventTime(event: Event) {
     }
   }
 }
+
+// 移动端适配
+@media (max-width: 768px) {
+  .calendar-page {
+    .calendar-header {
+      flex-wrap: wrap;
+      gap: 12px;
+
+      .page-title {
+        font-size: 18px;
+        width: 100%;
+      }
+
+      .calendar-actions {
+        width: 100%;
+        justify-content: space-between;
+        flex-wrap: wrap;
+
+        .current-month {
+          font-size: 14px;
+          min-width: auto;
+          order: -1;
+          width: 100%;
+          margin-bottom: 8px;
+        }
+
+        .view-toggle {
+          :deep(.n-radio-button) {
+            padding: 0 8px;
+            font-size: 12px;
+          }
+        }
+      }
+    }
+
+    .calendar-grid {
+      grid-template-columns: repeat(7, 1fr);
+    }
+
+    .calendar-weekday {
+      padding: 8px 2px;
+      font-size: 11px;
+    }
+
+    .calendar-day {
+      min-height: 80px;
+      padding: 4px;
+
+      .day-number {
+        font-size: 12px;
+      }
+
+      .day-events {
+        .event-item {
+          font-size: 10px;
+          padding: 1px 4px;
+
+          .event-time {
+            display: none;
+          }
+        }
+
+        .more-events {
+          font-size: 9px;
+        }
+      }
+    }
+
+    .week-view {
+      .week-header {
+        grid-template-columns: 40px repeat(7, 1fr);
+      }
+
+      .week-day-header {
+        padding: 8px 2px;
+
+        .week-day-name {
+          font-size: 10px;
+        }
+
+        .week-day-number {
+          font-size: 14px;
+        }
+
+        &.is-today .week-day-number {
+          width: 24px;
+          height: 24px;
+        }
+      }
+
+      .week-hour-row {
+        grid-template-columns: 40px repeat(7, 1fr);
+        min-height: 36px;
+
+        .hour-label {
+          font-size: 10px;
+          padding: 2px;
+        }
+
+        .week-hour-cell {
+          min-height: 36px;
+        }
+      }
+    }
+
+    .day-view {
+      .day-header {
+        padding: 12px;
+
+        .day-info {
+          .day-weekday {
+            font-size: 12px;
+          }
+
+          .day-number-large {
+            font-size: 36px;
+          }
+
+          .day-month-year {
+            font-size: 14px;
+          }
+        }
+      }
+
+      .day-grid {
+        max-height: calc(100vh - 300px);
+      }
+
+      .day-hour-row {
+        grid-template-columns: 50px 1fr;
+        min-height: 50px;
+
+        .hour-label {
+          font-size: 11px;
+          padding: 4px;
+        }
+      }
+
+      .day-event-item {
+        padding: 6px 8px;
+
+        .event-title {
+          font-size: 12px;
+        }
+      }
+    }
+  }
+}
+
+@media (max-width: 480px) {
+  .calendar-page {
+    .calendar-day {
+      min-height: 60px;
+
+      .day-events {
+        display: none;
+      }
+    }
+  }
+}
 </style>

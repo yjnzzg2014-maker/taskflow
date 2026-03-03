@@ -389,4 +389,96 @@ function isOverdue(task: Task): boolean {
   justify-content: flex-end;
   gap: 8px;
 }
+
+// 移动端适配
+@media (max-width: 768px) {
+  .todo-page {
+    padding: 0;
+
+    .todo-header {
+      flex-direction: column;
+      align-items: stretch;
+      gap: 12px;
+      margin-bottom: 16px;
+
+      .page-title {
+        font-size: 18px;
+        text-align: center;
+      }
+
+      .todo-actions {
+        flex-wrap: wrap;
+        justify-content: center;
+        gap: 8px;
+      }
+    }
+
+    .task-list {
+      gap: 8px;
+    }
+
+    .task-card {
+      :deep(.n-card__content) {
+        padding: 12px;
+      }
+
+      .task-content {
+        gap: 8px;
+      }
+
+      .task-checkbox {
+        flex-shrink: 0;
+      }
+
+      .task-info {
+        flex: 1;
+        min-width: 0;
+
+        .task-title {
+          font-size: 14px;
+          word-break: break-word;
+        }
+
+        .task-meta {
+          flex-wrap: wrap;
+          gap: 6px;
+
+          .meta-item {
+            font-size: 11px;
+          }
+        }
+      }
+
+      .task-tags {
+        flex-wrap: wrap;
+        gap: 4px;
+        margin-top: 8px;
+
+        :deep(.n-tag) {
+          font-size: 10px;
+          padding: 0 6px;
+          height: 20px;
+        }
+      }
+
+      .task-actions {
+        flex-shrink: 0;
+      }
+    }
+  }
+}
+
+@media (max-width: 480px) {
+  .todo-page {
+    .task-card {
+      .task-tags {
+        display: none;
+      }
+
+      .task-actions {
+        display: none;
+      }
+    }
+  }
+}
 </style>
