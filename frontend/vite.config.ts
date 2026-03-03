@@ -25,6 +25,7 @@ export default defineConfig({
   },
   server: {
     port: 5173,
+    allowedHosts: ['task.stjjkf.xyz', 'task-api.stjjkf.xyz'],
     proxy: {
       '/api': {
         target: 'http://localhost:8080',

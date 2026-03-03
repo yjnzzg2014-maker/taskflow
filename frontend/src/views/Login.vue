@@ -1,10 +1,17 @@
 <script setup lang="ts">
-import { reactive, ref } from 'vue'
+import { reactive, ref, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 import { useMessage } from 'naive-ui'
 import { useAuthStore } from '@/stores/auth'
 import { Calendar } from '@vicons/ionicons5'
+
+console.log('=== Login.vue mounted ===')
+console.log('localStorage token:', localStorage.getItem('token'))
+
+onMounted(() => {
+  console.log('Login onMounted')
+})
 
 const { t } = useI18n()
 const router = useRouter()
@@ -31,14 +38,23 @@ const rules = {
   }
 }
 
-async function handleLogin() {
+async function handleLogin(event: Event) {
+  console.log('=== handleLogin called ===')
+  event.preventDefault()
+  event.stopPropagation()
+
+  if (!form.username || !form.password) {
+    message.error('请输入用户名和密码')
+    return
+  }
+
   try {
-    await formRef.value?.validate()
     loading.value = true
     await authStore.login(form)
     message.success(t('auth.loginSuccess'))
     router.push('/')
   } catch (error: any) {
+    console.error('Login error:', error)
     if (error?.response) {
       message.error(error.response?.data?.message || t('auth.loginFailed'))
     }
@@ -80,16 +96,14 @@ async function handleLogin() {
         </n-form-item>
 
         <n-form-item>
-          <n-button
-            type="primary"
-            size="large"
-            :loading="loading"
-            class="login-btn"
-            block
-            @click="handleLogin"
+          <button
+            type="button"
+            class="login-btn-native"
+            :disabled="loading"
+            @click="(e) => handleLogin(e)"
           >
-            {{ t('auth.login') }}
-          </n-button>
+            {{ loading ? '登录中...' : t('auth.login') }}
+          </button>
         </n-form-item>
       </n-form>
 
@@ -133,6 +147,26 @@ async function handleLogin() {
 
 .login-btn {
   width: 100%;
+}
+
+.login-btn-native {
+  width: 100%;
+  padding: 12px;
+  background: #18a058;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  font-size: 16px;
+  cursor: pointer;
+}
+
+.login-btn-native:hover {
+  background: #159954;
+}
+
+.login-btn-native:disabled {
+  background: #ccc;
+  cursor: not-allowed;
 }
 
 .login-footer {
