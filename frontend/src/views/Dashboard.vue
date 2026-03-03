@@ -165,7 +165,7 @@ const formatNumber = (num: number) => {
 
     <n-grid :cols="24" :x-gap="20" :y-gap="20" class="chart-row">
       <n-gi :span="8">
-        <n-card hoverable>
+        <n-card hoverable :header-style="{ textAlign: 'center' }">
           <template #header>
             <span>{{ t('dashboard.taskStatus') }}</span>
           </template>
@@ -174,7 +174,7 @@ const formatNumber = (num: number) => {
       </n-gi>
 
       <n-gi :span="16">
-        <n-card hoverable>
+        <n-card hoverable :header-style="{ textAlign: 'center' }">
           <template #header>
             <span>{{ t('dashboard.taskTrend') }}</span>
           </template>
@@ -185,7 +185,7 @@ const formatNumber = (num: number) => {
 
     <n-grid :cols="24" :x-gap="20" :y-gap="20">
       <n-gi :span="12">
-        <n-card hoverable>
+        <n-card hoverable :header-style="{ textAlign: 'center' }">
           <template #header>
             <span>{{ t('dashboard.priorityDistribution') }}</span>
           </template>
@@ -194,7 +194,7 @@ const formatNumber = (num: number) => {
       </n-gi>
 
       <n-gi :span="12">
-        <n-card hoverable>
+        <n-card hoverable :header-style="{ textAlign: 'center' }">
           <template #header>
             <span>{{ t('dashboard.quickStats') }}</span>
           </template>
@@ -234,8 +234,11 @@ const formatNumber = (num: number) => {
 
 .stat-card {
   display: flex;
+  flex-direction: column;
   align-items: center;
-  gap: 16px;
+  justify-content: center;
+  text-align: center;
+  padding: 20px 16px;
 
   .stat-icon {
     width: 64px;
@@ -245,11 +248,10 @@ const formatNumber = (num: number) => {
     align-items: center;
     justify-content: center;
     color: #fff;
+    margin-bottom: 12px;
   }
 
   .stat-content {
-    flex: 1;
-
     .stat-value {
       font-size: 28px;
       font-weight: 600;
@@ -259,6 +261,7 @@ const formatNumber = (num: number) => {
     .stat-label {
       font-size: 14px;
       color: var(--n-text-color-3);
+      margin-top: 4px;
     }
   }
 }
@@ -267,13 +270,20 @@ const formatNumber = (num: number) => {
   margin-bottom: 20px;
 }
 
+.chart-title {
+  display: block;
+  text-align: center;
+  width: 100%;
+}
+
 .quick-stats {
   padding: 10px 0;
 
   .quick-stat-item {
     display: flex;
-    justify-content: space-between;
+    flex-direction: column;
     align-items: center;
+    text-align: center;
     padding: 12px 0;
     border-bottom: 1px solid var(--n-border-color);
 
@@ -283,12 +293,17 @@ const formatNumber = (num: number) => {
 
     .label {
       color: var(--n-text-color-3);
+      margin-bottom: 8px;
     }
 
     .value {
       font-size: 18px;
       font-weight: 600;
       color: var(--n-text-color);
+    }
+
+    :deep(.n-progress) {
+      width: 80%;
     }
   }
 }

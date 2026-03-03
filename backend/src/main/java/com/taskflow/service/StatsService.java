@@ -32,14 +32,14 @@ public class StatsService {
         User user = getCurrentUser();
         Long userId = user.getId();
 
-        Long totalTasks = taskRepository.count();
         Long completedTasks = taskRepository.countByUserIdAndStatus(userId, Task.TaskStatus.COMPLETED);
         Long pendingTasks = taskRepository.countByUserIdAndStatus(userId, Task.TaskStatus.PENDING);
         Long inProgressTasks = taskRepository.countByUserIdAndStatus(userId, Task.TaskStatus.IN_PROGRESS);
+        Long totalTasks = completedTasks + pendingTasks + inProgressTasks;
         Long overdueTasks = (long) taskRepository.findOverdueTasks(userId, LocalDateTime.now()).size();
 
-        Long totalEvents = eventRepository.count();
         List events = eventRepository.findByUserIdOrderByStartTimeDesc(userId);
+        Long totalEvents = (long) events.size();
         Long todayEvents = (long) events.stream()
                 .filter(e -> {
                     var event = (com.taskflow.entity.Event) e;
