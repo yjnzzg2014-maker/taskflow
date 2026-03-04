@@ -120,6 +120,11 @@ const dayHours = computed(() => {
   return hours
 })
 
+// 判断是否是睡眠时间 (23:00 - 08:00)
+function isSleepTime(hour: number) {
+  return hour >= 23 || hour < 8
+}
+
 const dayEvents = computed(() => {
   return eventStore.events.filter(e => {
     const eventDate = dayjs.utc(e.startTime).local()
@@ -382,7 +387,7 @@ function formatEventTime(event: Event) {
         </div>
       </div>
       <div class="day-grid">
-        <div v-for="hour in dayHours" :key="hour" class="day-hour-row" @click="openDialog(currentDate.hour(hour))">
+        <div v-for="hour in dayHours" :key="hour" class="day-hour-row" :class="{ 'sleep-time': isSleepTime(hour) }" @click="openDialog(currentDate.hour(hour))">
           <div class="hour-label">{{ hour.toString().padStart(2, '0') }}:00</div>
           <div class="day-hour-content">
             <div
@@ -728,6 +733,14 @@ function formatEventTime(event: Event) {
     min-height: 60px;
     border-bottom: 1px solid var(--n-border-color);
     cursor: pointer;
+
+    &.sleep-time {
+      background: rgba(128, 128, 128, 0.1);
+
+      .hour-label {
+        color: rgba(128, 128, 128, 0.6);
+      }
+    }
 
     &:hover {
       background: var(--n-color-hover);
