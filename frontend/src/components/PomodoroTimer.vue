@@ -18,7 +18,7 @@ const timeLeft = ref(25 * 60) // seconds
 const totalTime = ref(25 * 60)
 const sessionsCompleted = ref(0)
 const selectedTaskId = ref<number | null>(null)
-const showPanel = ref(false)
+const showModal = ref(false)
 
 let timerInterval: ReturnType<typeof setInterval> | null = null
 
@@ -102,11 +102,11 @@ async function fetchStats() {
 }
 
 function togglePanel() {
-  showPanel.value = !showPanel.value
+  showModal.value = !showModal.value
 }
 
 function closePanel() {
-  showPanel.value = false
+  showModal.value = false
 }
 
 function startTimer() {
@@ -314,20 +314,7 @@ function toggleFullscreen() {
   }
 }
 
-// Close panel when clicking outside
-function handleClickOutside(event: MouseEvent) {
-  const target = event.target as HTMLElement
-  if (!target.closest('.pomodoro-wrapper') && !target.closest('.fullscreen-timer')) {
-    closePanel()
-  }
-}
-
-onMounted(() => {
-  document.addEventListener('click', handleClickOutside)
-})
-
 onUnmounted(() => {
-  document.removeEventListener('click', handleClickOutside)
   if (timerInterval) {
     clearInterval(timerInterval)
   }
@@ -449,9 +436,9 @@ watch(workDuration, () => {
       </div>
     </n-modal>
 
-    <!-- Custom Panel -->
-    <Transition name="fade">
-      <div v-if="showPanel" class="pomodoro-panel">
+    <!-- Custom Panel Modal -->
+    <n-modal v-model:show="showModal" :mask-closable="true" class="pomodoro-modal">
+      <div class="pomodoro-panel">
         <!-- Stats Section -->
         <div class="stats-section" v-if="stats">
           <div class="stat-item">
@@ -476,7 +463,6 @@ watch(workDuration, () => {
             clearable
             size="small"
             :options="taskStore.tasks.map(t => ({ label: t.title, value: t.id }))"
-            @click.stop
           />
           <div class="selected-task" v-if="selectedTask">
             <n-tag size="small" type="info">{{ selectedTask.title }}</n-tag>
@@ -498,7 +484,7 @@ watch(workDuration, () => {
             type="primary"
             circle
             size="small"
-            @click.stop="startTimer"
+            @click="startTimer"
           >
             <template #icon>
               <n-icon :component="Play" />
@@ -509,7 +495,7 @@ watch(workDuration, () => {
             type="warning"
             circle
             size="small"
-            @click.stop="pauseTimer"
+            @click="pauseTimer"
           >
             <template #icon>
               <n-icon :component="Pause" />
@@ -520,18 +506,18 @@ watch(workDuration, () => {
             type="primary"
             circle
             size="small"
-            @click.stop="startTimer"
+            @click="startTimer"
           >
             <template #icon>
               <n-icon :component="Play" />
             </template>
           </n-button>
-          <n-button circle size="small" @click.stop="resetTimer">
+          <n-button circle size="small" @click="resetTimer">
             <template #icon>
               <n-icon :component="Refresh" />
             </template>
           </n-button>
-          <n-button circle size="small" @click.stop="toggleFullscreen">
+          <n-button circle size="small" @click="toggleFullscreen">
             <template #icon>
               <n-icon :component="Expand" />
             </template>
@@ -542,21 +528,21 @@ watch(workDuration, () => {
           <n-button
             :type="mode === 'work' ? 'error' : 'default'"
             size="small"
-            @click.stop="switchMode('work')"
+            @click="switchMode('work')"
           >
             {{ t('pomodoro.work') }}
           </n-button>
           <n-button
             :type="mode === 'shortBreak' ? 'success' : 'default'"
             size="small"
-            @click.stop="switchMode('shortBreak')"
+            @click="switchMode('shortBreak')"
           >
             {{ t('pomodoro.shortBreak') }}
           </n-button>
           <n-button
             :type="mode === 'longBreak' ? 'info' : 'default'"
             size="small"
-            @click.stop="switchMode('longBreak')"
+            @click="switchMode('longBreak')"
           >
             {{ t('pomodoro.longBreak') }}
           </n-button>
@@ -606,7 +592,7 @@ watch(workDuration, () => {
           </n-form>
         </div>
       </div>
-    </Transition>
+    </n-modal>
   </div>
 </template>
 
@@ -642,32 +628,125 @@ watch(workDuration, () => {
   color: #333;
 }
 
+.pomodoro-modal {
+  :deep(.n-modal) {
+    width: auto;
+    max-width: calc(100vw - 40px);
+  }
+}
+
 .pomodoro-panel {
-  position: absolute;
-  top: 100%;
-  right: 0;
-  margin-top: 8px;
-  width: 320px;
-  padding: 12px;
+  width: 340px;
+  max-width: 100vw;
+  padding: 16px;
   background: var(--n-color);
   border: 1px solid var(--n-border-color);
-  border-radius: 8px;
-  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.15);
-  z-index: 1000;
+  border-radius: 12px;
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 10px;
+  gap: 12px;
+  overflow-x: hidden;
 }
 
-.fade-enter-active,
-.fade-leave-active {
-  transition: opacity 0.2s ease;
-}
+@media (max-width: 480px) {
+  .pomodoro-modal {
+    :deep(.n-modal) {
+      max-width: calc(100vw - 20px);
+      margin: 10px;
+    }
+  }
 
-.fade-enter-from,
-.fade-leave-to {
-  opacity: 0;
+  .pomodoro-panel {
+    width: auto;
+    padding: 12px;
+    gap: 8px;
+  }
+
+  .pomodoro-panel .settings-section {
+    :deep(.n-form-item) {
+      margin-bottom: 4px;
+    }
+
+    :deep(.n-form-item .n-form-item-label) {
+      font-size: 12px;
+    }
+
+    :deep(.n-input-number),
+    :deep(.n-switch),
+    :deep(.n-select) {
+      --n-height: 28px;
+    }
+  }
+
+  .timer-display-large .timer-ring {
+    width: 60px;
+    height: 60px;
+  }
+
+  .timer-display-large .timer-inner {
+    width: 52px;
+    height: 52px;
+  }
+
+  .timer-display-large .timer-time-large {
+    font-size: 14px;
+  }
+
+  .stats-section {
+    padding: 6px;
+    gap: 4px;
+  }
+
+  .stats-section .stat-item .stat-label {
+    font-size: 9px;
+  }
+
+  .stats-section .stat-item .stat-value {
+    font-size: 14px;
+  }
+
+  .mode-switcher {
+    flex-wrap: wrap;
+    justify-content: center;
+  }
+
+  .fullscreen-modal {
+    :deep(.n-modal) {
+      padding: 0;
+    }
+  }
+
+  .fullscreen-timer {
+    padding: 20px 10px;
+  }
+
+  .fullscreen-time {
+    font-size: 80px !important;
+  }
+
+  .fullscreen-mode {
+    font-size: 20px !important;
+    letter-spacing: 2px;
+  }
+
+  .fullscreen-task {
+    font-size: 16px !important;
+  }
+
+  .fullscreen-progress {
+    width: 80vw !important;
+  }
+
+  .fullscreen-controls {
+    gap: 16px;
+  }
+
+  .fullscreen-mode-switch {
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 8px;
+  }
 }
 
 .stats-section {

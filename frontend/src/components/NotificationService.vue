@@ -4,13 +4,18 @@ import { useEventStore } from '@/stores/event'
 import { useTaskStore } from '@/stores/task'
 import dayjs from 'dayjs'
 
+// Check if Notification API is available (not supported in iOS Safari)
+const isNotificationSupported = typeof Notification !== 'undefined'
+
 const eventStore = useEventStore()
 const taskStore = useTaskStore()
 
-const notificationPermission = ref(Notification.permission)
+const notificationPermission = ref(isNotificationSupported ? Notification.permission : 'denied')
 let checkInterval: ReturnType<typeof setInterval> | null = null
 
 async function requestPermission() {
+  if (!isNotificationSupported) return
+
   if (Notification.permission === 'granted') {
     notificationPermission.value = 'granted'
     return
@@ -23,6 +28,8 @@ async function requestPermission() {
 }
 
 function sendNotification(title: string, body: string, icon?: string) {
+  if (!isNotificationSupported) return
+
   if (Notification.permission === 'granted') {
     new Notification(title, {
       body,

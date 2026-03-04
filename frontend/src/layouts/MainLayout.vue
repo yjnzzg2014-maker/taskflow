@@ -202,6 +202,11 @@ onUnmounted(() => {
               <n-icon :component="Sunny" />
             </template>
           </n-switch>
+          <n-dropdown :options="[{ label: t('auth.logout'), key: 'logout' }]" @select="handleLogout">
+            <n-button quaternary>
+              <n-avatar :size="24" round>{{ authStore.user?.username?.[0]?.toUpperCase() }}</n-avatar>
+            </n-button>
+          </n-dropdown>
         </div>
       </n-layout-header>
 

@@ -36,7 +36,7 @@ const tools = [
   }
 ]
 
-const currentTool = ref('markdown')
+const currentTool = ref<string | null>(null)
 
 function selectTool(toolId: string) {
   currentTool.value = toolId
@@ -78,6 +78,26 @@ function selectTool(toolId: string) {
     <div v-else-if="currentTool === 'tags'" class="tool-content">
       <h2>{{ t('tags.categories') }}</h2>
       <TagsManager />
+    </div>
+
+    <div v-else-if="currentTool === 'shortcuts'" class="tool-content">
+      <h2>{{ t('shortcuts.title') }}</h2>
+      <n-card>
+        <n-list>
+          <n-list-item>
+            <template #prefix><n-tag type="info">Ctrl/⌘ + K</n-tag></template>
+            {{ t('shortcuts.search') }}
+          </n-list-item>
+          <n-list-item>
+            <template #prefix><n-tag type="info">Ctrl/⌘ + N</n-tag></template>
+            {{ t('shortcuts.newTask') }}
+          </n-list-item>
+          <n-list-item>
+            <template #prefix><n-tag type="info">Ctrl/⌘ + P</n-tag></template>
+            {{ t('shortcuts.togglePomodoro') }}
+          </n-list-item>
+        </n-list>
+      </n-card>
     </div>
 
     <DataExport ref="dataExportRef" />

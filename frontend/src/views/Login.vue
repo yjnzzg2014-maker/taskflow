@@ -125,7 +125,7 @@ async function handleLogin(event: Event) {
 }
 
 .login-box {
-  width: 400px;
+  width: min(400px, 92vw);
 }
 
 .login-header {

@@ -4,13 +4,30 @@ import dayjs from 'dayjs'
 import { useI18n } from 'vue-i18n'
 import { useMessage, useDialog } from 'naive-ui'
 import { useTaskStore } from '@/stores/task'
-import type { Task } from '@/types'
+import { tagApi } from '@/api'
+import type { Task, Tag } from '@/types'
 import { Add, Trash, Time, List } from '@vicons/ionicons5'
 
 const { t } = useI18n()
 const message = useMessage()
 const dialog = useDialog()
 const taskStore = useTaskStore()
+
+// Tags
+const tags = ref<Tag[]>([])
+const tagsLoading = ref(false)
+
+async function fetchTags() {
+  tagsLoading.value = true
+  try {
+    const response = await tagApi.getAll()
+    tags.value = response.data
+  } catch (e) {
+    console.error('Failed to fetch tags', e)
+  } finally {
+    tagsLoading.value = false
+  }
+}
 
 const dialogVisible = ref(false)
 const isEdit = ref(false)
@@ -33,6 +50,7 @@ const form = ref<{
   status: 'PENDING' | 'IN_PROGRESS' | 'COMPLETED'
   dueDate: number | null
   categoryId: number | null
+  tagIds: number[]
   repeatType: 'NONE' | 'DAILY' | 'WEEKLY' | 'MONTHLY' | 'YEARLY'
   repeatInterval: number | null
   repeatEndDate: number | null
@@ -43,6 +61,7 @@ const form = ref<{
   status: 'PENDING',
   dueDate: null,
   categoryId: null,
+  tagIds: [],
   repeatType: 'NONE',
   repeatInterval: null,
   repeatEndDate: null
@@ -116,6 +135,7 @@ const filteredTasks = computed(() => {
 
 onMounted(async () => {
   await taskStore.fetchTasks()
+  await fetchTags()
 })
 
 function openDialog(task?: Task) {
@@ -129,6 +149,7 @@ function openDialog(task?: Task) {
       status: task.status,
       dueDate: task.dueDate ? new Date(task.dueDate).getTime() : null,
       categoryId: task.category?.id || null,
+      tagIds: task.tags?.map((t: Tag) => t.id) || [],
       repeatType: (task as any).repeatType || 'NONE',
       repeatInterval: (task as any).repeatInterval || null,
       repeatEndDate: (task as any).repeatEndDate ? new Date((task as any).repeatEndDate).getTime() : null
@@ -143,6 +164,7 @@ function openDialog(task?: Task) {
       status: 'PENDING',
       dueDate: null,
       categoryId: null,
+      tagIds: [],
       repeatType: 'NONE',
       repeatInterval: null,
       repeatEndDate: null
@@ -159,7 +181,8 @@ async function handleSubmit() {
       priority: form.value.priority,
       status: form.value.status,
       dueDate: form.value.dueDate ? dayjs(form.value.dueDate).format('YYYY-MM-DDTHH:mm:ss') : undefined,
-      categoryId: form.value.categoryId || undefined
+      categoryId: form.value.categoryId || undefined,
+      tagIds: form.value.tagIds.length > 0 ? form.value.tagIds : undefined
     }
 
     if (isEdit.value && currentTask.value.id) {
@@ -284,6 +307,9 @@ function isOverdue(task: Task): boolean {
               <n-tag v-if="task.category" size="small">
                 {{ task.category.name }}
               </n-tag>
+              <n-tag v-for="tag in task.tags" :key="tag.id" size="small" :color="{ color: tag.color, textColor: '#fff' }">
+                {{ tag.name }}
+              </n-tag>
               <span class="subtask-count" v-if="task.subTasks?.length">
                 <n-icon :component="List" />
                 {{ task.subTasks.filter(s => s.isCompleted).length }}/{{ task.subTasks.length }}
@@ -324,6 +350,17 @@ function isOverdue(task: Task): boolean {
 
         <n-form-item :label="t('task.status')">
           <n-select v-model:value="form.status" :options="statusOptions" />
+        </n-form-item>
+
+        <n-form-item :label="t('task.tags')">
+          <n-select
+            v-model:value="form.tagIds"
+            multiple
+            :options="tags.map(t => ({ label: t.name, value: t.id }))"
+            :loading="tagsLoading"
+            :placeholder="t('task.tags')"
+            clearable
+          />
         </n-form-item>
 
         <n-form-item :label="t('task.dueDate')">
