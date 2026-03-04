@@ -14,7 +14,9 @@ const route = useRoute()
 const authStore = useAuthStore()
 
 const isCollapse = ref(false)
-const isMobile = ref(false)
+// 使用媒体查询检测移动端，更可靠
+// 注意：在 SSR 环境下 window 可能不存在，需要保护
+const isMobile = ref(typeof window !== 'undefined' ? window.matchMedia('(max-width: 767px)').matches : false)
 const showMobileMenu = ref(false)
 
 const menuItems = computed(() => [
@@ -33,7 +35,7 @@ function handleLogout() {
 }
 
 function checkMobile() {
-  isMobile.value = window.innerWidth < 768
+  isMobile.value = window.matchMedia('(max-width: 767px)').matches
   if (isMobile.value) {
     isCollapse.value = true
   }
@@ -226,7 +228,7 @@ onUnmounted(() => {
 
 <style scoped lang="scss">
 .app-container {
-  height: 100vh;
+  height: 100dvh;
   overflow: hidden;
 }
 
@@ -284,7 +286,7 @@ onUnmounted(() => {
 
 // 移动端样式
 .mobile-layout {
-  height: 100vh;
+  height: 100dvh;
   display: flex;
   flex-direction: column;
   overflow: hidden;
