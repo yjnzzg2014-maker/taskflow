@@ -84,7 +84,6 @@ export default {
     startTime: 'Start Time',
     endTime: 'End Time',
     location: 'Location',
-    repeat: 'Repeat',
     remind: 'Remind',
     weekdays: {
       sun: 'Sun',
@@ -100,8 +99,12 @@ export default {
       daily: 'Daily',
       weekly: 'Weekly',
       monthly: 'Monthly',
+      yearly: 'Yearly',
       custom: 'Custom'
     },
+    repeat: 'Repeat',
+    repeatInterval: 'Interval (days)',
+    repeatEndDate: 'End Date',
     views: {
       day: 'Day',
       week: 'Week',
@@ -112,6 +115,14 @@ export default {
     title: 'Markdown Tool',
     preview: 'Preview & Print',
     desc: 'Markdown text preview and print'
+  },
+  tags: {
+    categories: 'Categories',
+    tags: 'Tags',
+    addCategory: 'Add Category',
+    addTag: 'Add Tag',
+    name: 'Name',
+    color: 'Color'
   },
   shortcuts: {
     title: 'Keyboard Shortcuts',
@@ -151,7 +162,17 @@ export default {
       pending: 'Pending',
       inProgress: 'In Progress',
       completed: 'Completed'
-    }
+    },
+    repeat: 'Repeat',
+    repeatTypes: {
+      none: 'None',
+      daily: 'Daily',
+      weekly: 'Weekly',
+      monthly: 'Monthly',
+      yearly: 'Yearly'
+    },
+    repeatInterval: 'Interval',
+    repeatEndDate: 'End Date'
   },
   profile: {
     title: 'Profile',

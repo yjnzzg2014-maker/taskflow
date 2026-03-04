@@ -19,12 +19,12 @@ const filterStatus = ref<string>('')
 const searchKeyword = ref('')
 const sortBy = ref<string>('priority')
 
-const sortOptions = [
-  { label: 'task.sort.priority', value: 'priority' },
-  { label: 'task.sort.dueDate', value: 'dueDate' },
-  { label: 'task.sort.createdAt', value: 'createdAt' },
-  { label: 'task.sort.title', value: 'title' }
-]
+const sortOptions = computed(() => [
+  { label: t('task.sort.priority'), value: 'priority' },
+  { label: t('task.sort.dueDate'), value: 'dueDate' },
+  { label: t('task.sort.createdAt'), value: 'createdAt' },
+  { label: t('task.sort.title'), value: 'title' }
+])
 
 const form = ref<{
   title: string
@@ -33,13 +33,19 @@ const form = ref<{
   status: 'PENDING' | 'IN_PROGRESS' | 'COMPLETED'
   dueDate: number | null
   categoryId: number | null
+  repeatType: 'NONE' | 'DAILY' | 'WEEKLY' | 'MONTHLY' | 'YEARLY'
+  repeatInterval: number | null
+  repeatEndDate: number | null
 }>({
   title: '',
   description: '',
   priority: 'MEDIUM',
   status: 'PENDING',
   dueDate: null,
-  categoryId: null
+  categoryId: null,
+  repeatType: 'NONE',
+  repeatInterval: null,
+  repeatEndDate: null
 })
 
 const priorityOptions = computed(() => [
@@ -54,6 +60,16 @@ const statusOptions = computed(() => [
   { label: t('task.statuses.inProgress'), value: 'IN_PROGRESS' },
   { label: t('task.statuses.completed'), value: 'COMPLETED' }
 ])
+
+const repeatOptions = computed(() => [
+  { label: t('task.repeatTypes.none'), value: 'NONE' },
+  { label: t('task.repeatTypes.daily'), value: 'DAILY' },
+  { label: t('task.repeatTypes.weekly'), value: 'WEEKLY' },
+  { label: t('task.repeatTypes.monthly'), value: 'MONTHLY' },
+  { label: t('task.repeatTypes.yearly'), value: 'YEARLY' }
+])
+
+const showRepeatSettings = computed(() => form.value.repeatType !== 'NONE')
 
 const filteredTasks = computed(() => {
   let tasks = [...taskStore.tasks]
@@ -112,7 +128,10 @@ function openDialog(task?: Task) {
       priority: task.priority,
       status: task.status,
       dueDate: task.dueDate ? new Date(task.dueDate).getTime() : null,
-      categoryId: task.category?.id || null
+      categoryId: task.category?.id || null,
+      repeatType: (task as any).repeatType || 'NONE',
+      repeatInterval: (task as any).repeatInterval || null,
+      repeatEndDate: (task as any).repeatEndDate ? new Date((task as any).repeatEndDate).getTime() : null
     }
   } else {
     isEdit.value = false
@@ -123,7 +142,10 @@ function openDialog(task?: Task) {
       priority: 'MEDIUM',
       status: 'PENDING',
       dueDate: null,
-      categoryId: null
+      categoryId: null,
+      repeatType: 'NONE',
+      repeatInterval: null,
+      repeatEndDate: null
     }
   }
   dialogVisible.value = true
@@ -136,7 +158,7 @@ async function handleSubmit() {
       description: form.value.description,
       priority: form.value.priority,
       status: form.value.status,
-      dueDate: form.value.dueDate ? dayjs(form.value.dueDate).toISOString() : undefined,
+      dueDate: form.value.dueDate ? dayjs(form.value.dueDate).format('YYYY-MM-DDTHH:mm:ss') : undefined,
       categoryId: form.value.categoryId || undefined
     }
 
@@ -312,6 +334,26 @@ function isOverdue(task: Task): boolean {
             style="width: 100%"
           />
         </n-form-item>
+
+        <n-form-item :label="t('task.repeat')">
+          <n-select v-model:value="form.repeatType" :options="repeatOptions" />
+        </n-form-item>
+
+        <template v-if="showRepeatSettings">
+          <n-form-item :label="t('task.repeatInterval')">
+            <n-input-number v-model:value="form.repeatInterval" :min="1" :max="30" />
+          </n-form-item>
+
+          <n-form-item :label="t('task.repeatEndDate')">
+            <n-date-picker
+              v-model:value="form.repeatEndDate"
+              type="date"
+              :placeholder="t('task.repeatEndDate')"
+              clearable
+              style="width: 100%"
+            />
+          </n-form-item>
+        </template>
       </n-form>
 
       <template #footer>

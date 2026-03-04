@@ -105,6 +105,7 @@ onMounted(() => {
   checkMobile()
   window.addEventListener('resize', checkMobile)
   document.addEventListener('keydown', handleKeydown)
+  authStore.fetchCurrentUser()
 })
 
 onUnmounted(() => {

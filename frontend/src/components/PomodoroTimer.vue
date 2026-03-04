@@ -67,7 +67,7 @@ const modeLabel = computed(() => {
 })
 
 const progress = computed(() => {
-  return ((totalTime.value - timeLeft.value) / totalTime.value) * 100
+  return Math.round(((totalTime.value - timeLeft.value) / totalTime.value) * 100)
 })
 
 const formattedTime = computed(() => {

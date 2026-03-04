@@ -3,7 +3,8 @@ import { ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 import MarkdownViewer from '@/components/MarkdownViewer.vue'
 import DataExport from '@/components/DataExport.vue'
-import { DocumentText, Calendar, Keypad } from '@vicons/ionicons5'
+import TagsManager from '@/components/TagsManager.vue'
+import { DocumentText, Calendar, Keypad, Pricetags } from '@vicons/ionicons5'
 
 const { t } = useI18n()
 const dataExportRef = ref()
@@ -20,6 +21,12 @@ const tools = [
     name: 'export.title',
     icon: Calendar,
     description: 'export.description'
+  },
+  {
+    id: 'tags',
+    name: 'tags.categories',
+    icon: Pricetags,
+    description: 'tags.categories'
   },
   {
     id: 'shortcuts',
@@ -66,6 +73,11 @@ function selectTool(toolId: string) {
     <div v-if="currentTool === 'markdown'" class="tool-content">
       <h2>{{ t('markdown.title') }}</h2>
       <MarkdownViewer :title="t('markdown.preview')" />
+    </div>
+
+    <div v-else-if="currentTool === 'tags'" class="tool-content">
+      <h2>{{ t('tags.categories') }}</h2>
+      <TagsManager />
     </div>
 
     <DataExport ref="dataExportRef" />

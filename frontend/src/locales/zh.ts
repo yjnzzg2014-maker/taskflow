@@ -84,7 +84,6 @@ export default {
     startTime: '开始时间',
     endTime: '结束时间',
     location: '地点',
-    repeat: '重复',
     remind: '提醒',
     weekdays: {
       sun: '日',
@@ -100,8 +99,12 @@ export default {
       daily: '每天',
       weekly: '每周',
       monthly: '每月',
+      yearly: '每年',
       custom: '自定义'
     },
+    repeat: '重复',
+    repeatInterval: '重复间隔(天)',
+    repeatEndDate: '重复结束日期',
     views: {
       day: '日',
       week: '周',
@@ -112,6 +115,14 @@ export default {
     title: 'Markdown 工具',
     preview: '预览打印',
     desc: 'Markdown 文本预览和打印'
+  },
+  tags: {
+    categories: '分类',
+    tags: '标签',
+    addCategory: '添加分类',
+    addTag: '添加标签',
+    name: '名称',
+    color: '颜色'
   },
   shortcuts: {
     title: '快捷键',
@@ -151,7 +162,17 @@ export default {
       pending: '未开始',
       inProgress: '进行中',
       completed: '已完成'
-    }
+    },
+    repeat: '重复',
+    repeatTypes: {
+      none: '不重复',
+      daily: '每天',
+      weekly: '每周',
+      monthly: '每月',
+      yearly: '每年'
+    },
+    repeatInterval: '重复间隔',
+    repeatEndDate: '重复结束日期'
   },
   profile: {
     title: '个人中心',
