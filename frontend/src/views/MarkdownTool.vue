@@ -4,7 +4,7 @@ import { useI18n } from 'vue-i18n'
 import MarkdownViewer from '@/components/MarkdownViewer.vue'
 import DataExport from '@/components/DataExport.vue'
 import TagsManager from '@/components/TagsManager.vue'
-import { DocumentText, Calendar, Keypad, Pricetags } from '@vicons/ionicons5'
+import { DocumentText, Calendar, Pricetags } from '@vicons/ionicons5'
 
 const { t } = useI18n()
 const dataExportRef = ref()
@@ -27,12 +27,6 @@ const tools = [
     name: 'tags.categories',
     icon: Pricetags,
     description: 'tags.categories'
-  },
-  {
-    id: 'shortcuts',
-    name: 'shortcuts.title',
-    icon: Keypad,
-    description: 'shortcuts.desc'
   }
 ]
 
@@ -78,26 +72,6 @@ function selectTool(toolId: string) {
     <div v-else-if="currentTool === 'tags'" class="tool-content">
       <h2>{{ t('tags.categories') }}</h2>
       <TagsManager />
-    </div>
-
-    <div v-else-if="currentTool === 'shortcuts'" class="tool-content">
-      <h2>{{ t('shortcuts.title') }}</h2>
-      <n-card>
-        <n-list>
-          <n-list-item>
-            <template #prefix><n-tag type="info">Ctrl/⌘ + K</n-tag></template>
-            {{ t('shortcuts.search') }}
-          </n-list-item>
-          <n-list-item>
-            <template #prefix><n-tag type="info">Ctrl/⌘ + N</n-tag></template>
-            {{ t('shortcuts.newTask') }}
-          </n-list-item>
-          <n-list-item>
-            <template #prefix><n-tag type="info">Ctrl/⌘ + P</n-tag></template>
-            {{ t('shortcuts.togglePomodoro') }}
-          </n-list-item>
-        </n-list>
-      </n-card>
     </div>
 
     <DataExport ref="dataExportRef" />

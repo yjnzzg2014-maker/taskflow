@@ -12,11 +12,7 @@ export const useTaskStore = defineStore('task', () => {
     isLoading.value = true
     try {
       const response = await taskApi.getAll()
-      console.log('Tasks fetched:', response.data.length)
       tasks.value = response.data
-    } catch (error) {
-      console.error('Failed to fetch tasks:', error)
-      throw error
     } finally {
       isLoading.value = false
     }

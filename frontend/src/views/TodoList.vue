@@ -134,12 +134,7 @@ const filteredTasks = computed(() => {
 })
 
 onMounted(async () => {
-  try {
-    await taskStore.fetchTasks()
-  } catch (error: any) {
-    console.error('Failed to fetch tasks:', error)
-    message.error(error.response?.data?.message || 'Failed to load tasks')
-  }
+  await taskStore.fetchTasks()
   await fetchTags()
 })
 
