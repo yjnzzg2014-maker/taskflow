@@ -161,8 +161,9 @@ onMounted(async () => {
 })
 
 async function fetchEvents() {
-  const start = currentDate.value.startOf('month').toISOString()
-  const end = currentDate.value.endOf('month').toISOString()
+  // 使用本地时间格式，避免时区问题
+  const start = currentDate.value.startOf('month').format('YYYY-MM-DDTHH:mm:ss')
+  const end = currentDate.value.endOf('month').format('YYYY-MM-DDTHH:mm:ss')
   await eventStore.fetchCalendarEvents(start, end)
 }
 
@@ -244,12 +245,12 @@ async function handleSubmit() {
     const data = {
       title: form.value.title,
       description: form.value.description,
-      startTime: dayjs(form.value.startTime).toISOString(),
-      endTime: form.value.endTime ? dayjs(form.value.endTime).toISOString() : undefined,
+      startTime: dayjs(form.value.startTime).format('YYYY-MM-DDTHH:mm:ss'),
+      endTime: form.value.endTime ? dayjs(form.value.endTime).format('YYYY-MM-DDTHH:mm:ss') : undefined,
       location: form.value.location,
       isAllDay: form.value.isAllDay,
       repeatType: form.value.repeatType,
-      remindAt: form.value.remindAt ? dayjs(form.value.remindAt).toISOString() : undefined
+      remindAt: form.value.remindAt ? dayjs(form.value.remindAt).format('YYYY-MM-DDTHH:mm:ss') : undefined
     }
 
     if (isEdit.value && currentEvent.value.id) {
